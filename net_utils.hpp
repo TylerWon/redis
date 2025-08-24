@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 /**
  * Sends all n bytes of data in the provided buffer to the socket.
  * 

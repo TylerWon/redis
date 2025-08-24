@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "net_utils.h"
-#include "log.h"
-#include "constants.h"
+#include "net_utils.hpp"
+#include "log.hpp"
+#include "constants.hpp"
 
 
 /**

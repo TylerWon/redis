@@ -1,6 +1,6 @@
 #include <sys/socket.h>
 
-#include "net_utils.h"
+#include "net_utils.hpp"
 
 ssize_t send_all(int sockfd, char *buf, size_t n) {
     while (n > 0) {
