@@ -2,7 +2,7 @@
 
 #include "net_utils.hpp"
 
-ssize_t send_all(int sockfd, char *buf, size_t n) {
+ssize_t send_all(int sockfd, const char *buf, size_t n) {
     while (n > 0) {
         ssize_t sent = send(sockfd, buf, n, 0);
         if (sent == -1) {

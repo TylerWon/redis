@@ -147,12 +147,12 @@ int recv_response(int server) {
 int main() {
     struct addrinfo *res = get_server_addr_info();
     if (res == NULL) {
-        kill("failed to get server's addrinfo");
+        fatal("failed to get server's addrinfo");
     }
 
     int server;
     if ((server = connect_to_server(res)) == -1) {
-        kill("failed to connect to server");
+        fatal("failed to connect to server");
     }
     
     freeaddrinfo(res);
@@ -160,19 +160,19 @@ int main() {
     log("connected to server");
 
     if (send_request(server, "hello") == -1) {
-        kill("failed to send message");
+        fatal("failed to send message");
     }
 
     if (recv_response(server) == -1) {
-        kill("failed to receive response");
+        fatal("failed to receive response");
     }
 
     if (send_request(server, "another message") == -1) {
-        kill("failed to send message");
+        fatal("failed to send message");
     }
 
     if (recv_response(server) == -1) {
-        kill("failed to receive response");
+        fatal("failed to receive response");
     }
 
     return 0;

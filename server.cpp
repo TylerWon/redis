@@ -107,19 +107,19 @@ int recv_message(int server, char *buf, uint32_t *buf_len) {
 int main() {
     struct addrinfo *res = get_server_addr_info();
     if (res == NULL) {
-        kill("failed to get server's addrinfo");
+        fatal("failed to get server's addrinfo");
     }
 
     int listener;
     if ((listener = start_server(res)) == -1) {
-        kill("failed to start server");
+        fatal("failed to start server");
     }
 
     log("started server");
 
     int client;
     if ((client = accept(listener, NULL, NULL)) == -1) {
-        kill("failed to accept client connection");
+        fatal("failed to accept client connection");
     }
 
     log("accepted connection");
@@ -128,13 +128,13 @@ int main() {
         char buf[4 + MAX_MSG_LEN];
         uint32_t buf_len;
         if (recv_message(client, buf, &buf_len) == -1) {
-            kill("failed to receive message");
+            fatal("failed to receive message");
         }
 
         log("received message");
 
         if (send_all(client, buf, buf_len) == -1) {
-            kill("failed to send reply");
+            fatal("failed to send reply");
         }
 
         log("sent reply");

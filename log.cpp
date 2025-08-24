@@ -5,7 +5,7 @@ void log(const char *msg) {
     fprintf(stderr, "%s\n", msg);
 }
 
-void kill(const char *msg) {
-    fprintf(stderr, "%s\n", msg);
+void fatal(const char *msg) {
+    log(msg);
     exit(EXIT_FAILURE);
 }

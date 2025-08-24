@@ -10,7 +10,7 @@
  * @return  0 on success.
  *          -1 on error (and sets errno accordingly).
  */
-ssize_t send_all(int sockfd, char *buf, size_t n);
+ssize_t send_all(int sockfd, const char *buf, size_t n);
 
 /**
  * Receives all n bytes of data from the socket and stores it in the provided buffer.
