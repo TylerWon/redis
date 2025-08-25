@@ -5,11 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string>
+#include <vector>
+#include <stdexcept>
 
 #include "net_utils.hpp"
 #include "log.hpp"
 #include "constants.hpp"
-
+#include "Request.hpp"
 
 /**
  * Gets the server's address info which can be used in connect(). 
@@ -62,51 +65,23 @@ int connect_to_server(struct addrinfo *res) {
 }
 
 /**
- * Serializes a message to be sent to the server.
- * 
- * Message format:
- * - Message length (4 bytes)
- * - Message (max 4086 bytes)
- * 
- * @param msg       The message.
- * @param msg_len   The length of the message.
- * @param buf       Pointer to a char buffer where the serialized message will be stored. 
- */
-void serialize(const char *msg, uint32_t msg_len, char *buf) {
-    char *b = buf;
-
-    uint32_t msg_len_nbe = htonl(msg_len);
-    memcpy(b, &msg_len_nbe, 4);
-    b += 4;
-
-    memcpy(b, msg, msg_len);
-}
-
-/**
- * Sends a request to the server.
+ * Sends a Request to the server.
  * 
  * @param server    The server socket.
- * @param msg       The request message.
+ * @param request   The Request.
  * 
  * @return  0 on success.
  *          -1 on error.
  */
-int send_request(int server, const char *msg) {
-    uint32_t msg_len = (uint32_t) strlen(msg);
-    if (msg_len > MAX_MSG_LEN) {
-        printf("message is too long\n");
-        return -1;
-    }
-
+int send_request(int server, Request request) {
     char buf[4 + MAX_MSG_LEN];
-    serialize(msg, msg_len, buf);
+    uint32_t n;
+    request.serialize(buf, &n);
 
-    if (send_all(server, buf, 4 + msg_len) == -1) {
+    if (send_all(server, buf, n) == -1) {
         perror("failed to send message");
         return -1;
     }
-
-    printf("sent: %s\n", msg);
 
     return 0;
 }
@@ -144,7 +119,7 @@ int recv_response(int server) {
     return 0;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     struct addrinfo *res = get_server_addr_info();
     if (res == NULL) {
         fatal("failed to get server's addrinfo");
@@ -159,21 +134,27 @@ int main() {
 
     log("connected to server");
 
-    if (send_request(server, "hello") == -1) {
-        fatal("failed to send message");
+    std::vector<std::string> command;
+    for (int i = 1; i < argc; i++) {
+        command.push_back(argv[i]);
     }
 
-    if (recv_response(server) == -1) {
-        fatal("failed to receive response");
+    uint32_t len = 0;
+    for (const std::string &s : command) {
+        len += s.length(); 
+    }
+    if (len > Request::MAX_REQ_LEN) {
+        fatal("command is too long");
     }
 
-    if (send_request(server, "another message") == -1) {
-        fatal("failed to send message");
+    log("read command");
+
+    Request request(command);
+    if (send_request(server, request) == -1) {
+        fatal("failed to send request");
     }
 
-    if (recv_response(server) == -1) {
-        fatal("failed to receive response");
-    }
+    log("sent request");
 
     return 0;
 }

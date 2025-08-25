@@ -5,24 +5,27 @@ CXXFLAGS = -Wall -Wextra -std=c++17 -O2 -g
 CLIENT = client
 SERVER = server
 
-# Sources
-CLIENT_SRC = client.cpp net_utils.cpp log.cpp
-SERVER_SRC = server.cpp net_utils.cpp log.cpp
+# Common sources (all shared modules go here)
+COMMON_SRC = net_utils.cpp log.cpp Request.cpp buf_utils.cpp
+COMMON_OBJ = $(COMMON_SRC:.cpp=.o)
 
-# Objects
+# Unique sources
+CLIENT_SRC = client.cpp
+SERVER_SRC = server.cpp
+
 CLIENT_OBJ = $(CLIENT_SRC:.cpp=.o)
 SERVER_OBJ = $(SERVER_SRC:.cpp=.o)
 
 # Rules
 all: $(CLIENT) $(SERVER)
 
-$(CLIENT): $(CLIENT_OBJ)
+$(CLIENT): $(CLIENT_OBJ) $(COMMON_OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(SERVER): $(SERVER_OBJ)
+$(SERVER): $(SERVER_OBJ) $(COMMON_OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
 	rm -f $(CLIENT) $(SERVER) *.o
 
-.PHONY: all
+.PHONY: all clean
