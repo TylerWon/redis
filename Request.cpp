@@ -10,7 +10,7 @@ Request::Request(const std::vector<std::string> &command) {
 }
 
 void Request::serialize(char *buf, uint32_t *n) {
-    *n = 4; // Request length header
+    *n = 4 + 4; // Request length header + number of strings header
     for (const std::string &s : Request::command) {
         *n += 4 + s.length(); // String length header + string 
     }
@@ -47,10 +47,15 @@ Request Request::deserialize(const char *buf) {
 }
 
 std::string Request::to_string() {
-    std::string result = Request::command[0];
-    for (const std::string &s : Request::command) {
-        result += " ";
-        result += s;
+    if (Request::command.size() < 1) {
+        return "";
     }
+
+    std::string result = Request::command[0];
+    for (uint32_t i = 1; i < Request::command.size(); i++) {
+        result += " ";
+        result += command[i];
+    }
+
     return result;
 }

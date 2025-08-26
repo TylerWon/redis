@@ -21,7 +21,7 @@ class Request {
          * - Length of string 2 (4 bytes)
          * - etc.
          * 
-         * @param buf   Pointer to a char buffer where the serialized request will be stored.
+         * @param buf   Pointer to a char buffer where the serialized Request will be stored.
          * @param n     Pointer to a uint32_t where the length of the buffer will be stored.
          */
         void serialize(char *buf, uint32_t *n);
@@ -29,7 +29,7 @@ class Request {
         /**
          * Deserializes the Request in the provided buffer.
          * 
-         * @param buf   Pointer to a char buffer where the request is stored.
+         * @param buf   Pointer to a char buffer where the Request is stored.
          * 
          * @return  The Request.
          */

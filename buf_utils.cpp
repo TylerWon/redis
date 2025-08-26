@@ -4,6 +4,8 @@
 
 #include "buf_utils.hpp"
 
+// Helpers for reading/writing various data types to a buffer used in send()/recv()
+
 void read_uint32(uint32_t *dest, const char **src) {
     memcpy(dest, *src, 4);
     *dest = ntohl(*dest);

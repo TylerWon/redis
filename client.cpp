@@ -13,6 +13,8 @@
 #include "log.hpp"
 #include "constants.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
+#include "buf_utils.hpp"
 
 /**
  * Gets the server's address info which can be used in connect(). 
@@ -87,34 +89,52 @@ int send_request(int server, Request request) {
 }
 
 /**
- * Receives a response from the server. The server repeats the message sent by the client for its response.
+ * Receives a response from the server.
+ * 
+ * @param server    The server socket.
+ * @param buf       Pointer to a char buffer where the response will be stored.
+ * 
+ * @return  0 on success.
+ *          -1 on error.
+ */
+int recv_response(int server, char *buf) {
+    if (recv_all(server, buf, 4) == -1) {
+        perror("failed to receive response length");
+        return -1;
+    }
+
+    uint32_t len;
+    read_uint32(&len, (const char **) &buf);
+    if (len > Response::MAX_RES_LEN) {
+        printf("response is too long\n");
+        return -1;
+    }
+
+    if (recv_all(server, buf, len) == -1) {
+        perror("failed to receive response body");
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Handles a response from the server.
  * 
  * @param server    The server socket.
  * 
  * @return  0 on success.
  *          -1 on error.
  */
-int recv_response(int server) {
-    char buf[4 + MAX_MSG_LEN];
-    if (recv_all(server, buf, 4) == -1) {
-        perror("failed to receive message length");
+int handle_response(int server) {
+    char buf[4 + Response::MAX_RES_LEN];
+    if (recv_response(server, buf) == -1) {
+        log("failed to receive response");
         return -1;
     }
 
-    uint32_t msg_len_nbe;
-    memcpy(&msg_len_nbe, buf, 4);
-    uint32_t msg_len = ntohl(msg_len_nbe);
-    if (msg_len > MAX_MSG_LEN) {
-        printf("message is too long\n");
-        return -1;
-    }
-
-    if (recv_all(server, buf+4, msg_len) == -1) {
-        perror("failed to receive message");
-        return -1;
-    }
-
-    printf("received: %s\n", buf+4);
+    Response response = Response::deserialize(buf);
+    log(response.to_string());
 
     return 0;
 }
@@ -141,7 +161,7 @@ int main(int argc, char *argv[]) {
 
     uint32_t len = 0;
     for (const std::string &s : command) {
-        len += s.length(); 
+        len += 4 + s.length();  // 4 byte length header
     }
     if (len > Request::MAX_REQ_LEN) {
         fatal("command is too long");
@@ -155,6 +175,10 @@ int main(int argc, char *argv[]) {
     }
 
     log("sent request");
+
+    if (handle_response(server) == -1) {
+        fatal("failed to handle response");
+    }
 
     return 0;
 }

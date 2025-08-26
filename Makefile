@@ -1,12 +1,12 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -O2 -g
+CXXFLAGS = -Wall -Wextra -std=c++20 -O2 -g
 
 # Executables
 CLIENT = client
 SERVER = server
 
 # Common sources (all shared modules go here)
-COMMON_SRC = net_utils.cpp log.cpp Request.cpp buf_utils.cpp
+COMMON_SRC = buf_utils.cpp log.cpp net_utils.cpp Request.cpp Response.cpp
 COMMON_OBJ = $(COMMON_SRC:.cpp=.o)
 
 # Unique sources
