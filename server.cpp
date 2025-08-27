@@ -81,67 +81,33 @@ int start_server(struct addrinfo *res) {
 }
 
 /**
- * Receives a message from a client.
- * 
- * @param client    The client socket.
- * @param buf       Pointer to a char buffer where the message will be stored.
- * @param buf_len   Pointer to a uint32_t where the buffer length will be stored.
- * 
- * @return  0 on success.
- *          -1 on error.
- */
-int recv_message(int server, char *buf, uint32_t *buf_len) {
-    if (recv_all(server, buf, 4) == -1) {
-        perror("failed to receive message length");
-        return -1;
-    }
-
-    uint32_t msg_len_nbe;
-    memcpy(&msg_len_nbe, buf, 4);
-    uint32_t msg_len = ntohl(msg_len_nbe);
-    if (msg_len > MAX_MSG_LEN) {
-        printf("message is too long\n");
-        return -1;
-    }
-
-    if (recv_all(server, buf+4, msg_len) == -1) {
-        perror("failed to receive message");
-        return -1;
-    }
-
-    *buf_len = 4 + msg_len;
-
-    return 0;
-}
-
-/**
  * Receives a request from a client.
  * 
  * @param client    The client socket.
  * @param buf       Pointer to a char buffer where the request will be stored.
  * 
- * @return  0 on success.
- *          -1 on error.
+ * @return  True on success.
+ *          False on failure.
  */
-int recv_request(int client, char *buf) {
+bool recv_request(int client, char *buf) {
     if (recv_all(client, buf, 4) == -1) {
         log("failed to receive request length");
-        return -1;
+        return false;
     }
 
     uint32_t len;
     read_uint32(&len, (const char **) &buf);
     if (len > Request::MAX_REQ_LEN) {
         log("request is too long");
-        return -1;
+        return false;
     }
 
     if (recv_all(client, buf, len) == -1) {
         log("failed to receive request body");
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 /**
@@ -190,19 +156,19 @@ Response execute_command(Request request) {
  * @param client    The client socket.
  * @param response  The Response.
  * 
- * @param   0 on success.
- *          -1 on errror.
+ * @return  True on success.
+ *          False on failure.
  */
-int send_response(int client, Response response) {
+bool send_response(int client, Response response) {
     char buf[4 + Response::MAX_RES_LEN];
     uint32_t n;
     response.serialize(buf, &n);
 
     if (send_all(client, buf, n) == -1) {
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 /**
@@ -210,25 +176,25 @@ int send_response(int client, Response response) {
  * 
  * @param client    The client socket.
  * 
- * @return  0 on success.
- *          -1 on error.
+ * @return  True on success.
+ *          False on failure.
  */
-int handle_request(int client) {
+bool handle_request(int client) {
     char buf[4 + Request::MAX_REQ_LEN];
-    if (recv_request(client, buf) == -1) {
+    if (!recv_request(client, buf)) {
         log("failed to receive request");
-        return -1;
+        return false;
     }
 
     Request request = Request::deserialize(buf);
 
     Response response = execute_command(request);
-    if (send_response(client, response) == -1) {
+    if (!send_response(client, response)) {
         log("failed to send response");
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 int main() {
@@ -251,7 +217,7 @@ int main() {
 
     log("accepted connection");
 
-    if (handle_request(client) == -1) {
+    if (!handle_request(client)) {
         fatal("failed to handle request");
     }
 

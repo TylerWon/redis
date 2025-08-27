@@ -1,5 +1,7 @@
 #include <cstdint>
 
+// Helpers for reading/writing various data types to a buffer for send()/recv()
+
 /**
  * Reads a uint32_t from the src buffer, storing it in dest. Moves the buffer pointer by 4 after.
  * 
