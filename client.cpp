@@ -1,13 +1,10 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <sys/socket.h>
+#include <cstring>
+#include <netdb.h>
+#include <unistd.h>
 
 #include "net_utils.hpp"
 #include "log.hpp"
@@ -76,7 +73,7 @@ int connect_to_server(struct addrinfo *res) {
  *          False on failure.
  */
 bool send_request(int server, Request request) {
-    char buf[4 + MAX_MSG_LEN];
+    char buf[4 + Request::MAX_REQ_LEN];
     uint32_t n;
     request.serialize(buf, &n);
 

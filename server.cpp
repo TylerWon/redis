@@ -1,15 +1,12 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <vector>
 #include <string>
 #include <map>
 #include <stdexcept>
 #include <format>
+#include <cstring>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
 
 #include "net_utils.hpp"
 #include "log.hpp"
