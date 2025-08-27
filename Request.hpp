@@ -3,6 +3,10 @@
 #include <cstdint>
 
 class Request {
+    private:
+        static const uint32_t REQ_LEN_SIZE  = 4;
+        static const uint32_t NUM_STRS_SIZE = 4;
+        static const uint32_t STR_LEN_SIZE  = 4;
     public:
         static const uint32_t MAX_REQ_LEN = 4096;
 

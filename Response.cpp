@@ -9,16 +9,16 @@ Response::Response(ResponseStatus status, const std::string message) {
 }
 
 void Response::serialize(char *buf, uint32_t *n) {
-    *n = 4 + 4 + 4 + Response::message.length();
+    *n = Response::RES_LEN_SIZE + Response::STATUS_SIZE + Response::MSG_LEN_SIZE + Response::message.length();
 
-    write_uint32(&buf, *n-4); // Substract response length header
+    write_uint32(&buf, *n-Response::RES_LEN_SIZE);
     write_uint32(&buf, (uint32_t) Response::status);
     write_uint32(&buf, message.length());
     write_str(&buf, Response::message);
 }
 
 Response Response::deserialize(const char *buf) {
-    buf += 4; // Skip over response length
+    buf += Response::RES_LEN_SIZE;
 
     Response::ResponseStatus status;
     read_uint32((uint32_t *) &status, &buf);

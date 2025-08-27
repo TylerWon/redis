@@ -10,15 +10,13 @@ Request::Request(const std::vector<std::string> &command) {
 }
 
 void Request::serialize(char *buf, uint32_t *n) {
-    *n = 4 + 4; // Request length header + number of strings header
+    *n = Request::REQ_LEN_SIZE + Request::NUM_STRS_SIZE;
     for (const std::string &s : Request::command) {
-        *n += 4 + s.length(); // String length header + string 
+        *n += Request::STR_LEN_SIZE + s.length();
     }
 
-    write_uint32(&buf, *n-4); // Subtract request length header
-
+    write_uint32(&buf, *n-Request::REQ_LEN_SIZE);
     write_uint32(&buf, Request::command.size());
-
     for (const std::string &s : Request::command) {
         uint32_t s_len = s.length();
 
@@ -28,13 +26,13 @@ void Request::serialize(char *buf, uint32_t *n) {
 }
 
 Request Request::deserialize(const char *buf) {
-    buf += 4;   // Skip over request length
+    buf += Request::REQ_LEN_SIZE;
 
-    uint32_t num_str;
-    read_uint32(&num_str, &buf);
+    uint32_t num_strs;
+    read_uint32(&num_strs, &buf);
 
     std::vector<std::string> command;
-    while (num_str > command.size()) {
+    while (num_strs > command.size()) {
         uint32_t s_len;
         read_uint32(&s_len, &buf);
 

@@ -2,6 +2,10 @@
 #include <cstdint>
 
 class Response {
+    private:
+        static const uint32_t RES_LEN_SIZE  = 4;
+        static const uint32_t STATUS_SIZE = 4;
+        static const uint32_t MSG_LEN_SIZE  = 4;
     public:
         static const uint32_t MAX_RES_LEN = 4096;
 
