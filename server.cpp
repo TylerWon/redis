@@ -82,11 +82,12 @@ int start_server(struct addrinfo *res) {
  * 
  * @param client    The client socket.
  * @param buf       Pointer to a char buffer where the request will be stored.
+ * @param n         Pointer to a uint32_t where the size of the request will be stored.
  * 
  * @return  True on success.
  *          False on failure.
  */
-bool recv_request(int client, char *buf) {
+bool recv_request(int client, char *buf, uint32_t *n) {
     if (recv_all(client, buf, 4) == -1) {
         log("failed to receive request length");
         return false;
@@ -104,6 +105,8 @@ bool recv_request(int client, char *buf) {
         return false;
     }
 
+    *n = len + 4;
+
     return true;
 }
 
@@ -115,13 +118,13 @@ bool recv_request(int client, char *buf) {
  * 2. set [key] [value] - set the value of [key] to [value] in the kv store
  * 3. del [key] - delete [key] from the kv store
  * 
- * @param request   The request.
+ * @param request   Pointer to the Request.
  * 
  * @return  The Response for executing the command.
  */
-Response execute_command(Request request) {
+Response execute_command(Request *request) {
     Response response(Response::ResponseStatus::RES_OK, "");
-    std::vector<std::string> &command = request.command;
+    std::vector<std::string> &command = request->command;
 
     if (command.size() == 2 && command[0] == "get") {
         try {
@@ -139,7 +142,7 @@ Response execute_command(Request request) {
         response.message = std::format("removed key '{}'", command[1]);
     } else {
         response.status = Response::ResponseStatus::RES_ERR;
-        response.message = std::format("'{}' is not a valid command", request.to_string());
+        response.message = std::format("'{}' is not a valid command", request->to_string());
     }
 
     log(response.message);
@@ -157,13 +160,20 @@ Response execute_command(Request request) {
  *          False on failure.
  */
 bool send_response(int client, Response response) {
-    char buf[4 + Response::MAX_RES_LEN];
+    char *buf;
     uint32_t n;
-    response.serialize(buf, &n);
-
-    if (send_all(client, buf, n) == -1) {
+    response.serialize(&buf, &n);
+    if (buf == NULL) {
+        log("failed to serialize response");
         return false;
     }
+
+    if (send_all(client, buf, n) == -1) {
+        free(buf);
+        return false;
+    }
+
+    free(buf);
 
     return true;
 }
@@ -178,18 +188,27 @@ bool send_response(int client, Response response) {
  */
 bool handle_request(int client) {
     char buf[4 + Request::MAX_REQ_LEN];
-    if (!recv_request(client, buf)) {
+    uint32_t n;
+    if (!recv_request(client, buf, &n)) {
         log("failed to receive request");
         return false;
     }
 
-    Request request = Request::deserialize(buf);
+    int res;
+    Request *request = Request::deserialize(buf, n, &res);
+    if (res < 1) {
+        log("failed to deserialize request");
+        return false;
+    }
 
     Response response = execute_command(request);
     if (!send_response(client, response)) {
         log("failed to send response");
+        delete request;
         return false;
     }
+
+    delete request;
 
     return true;
 }

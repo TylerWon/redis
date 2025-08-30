@@ -8,17 +8,41 @@ Response::Response(ResponseStatus status, const std::string message) {
     Response::message = message;
 }
 
-void Response::serialize(char *buf, uint32_t *n) {
-    *n = Response::RES_LEN_SIZE + Response::STATUS_SIZE + Response::MSG_LEN_SIZE + Response::message.length();
+void Response::serialize(char **buf, uint32_t *buf_len) {
+    uint32_t res_len = Response::length();
+    if (res_len > Response::MAX_RES_LEN) {
+        *buf = NULL;
+        return;
+    }
 
-    write_uint32(&buf, *n-Response::RES_LEN_SIZE);
-    write_uint32(&buf, (uint32_t) Response::status);
-    write_uint32(&buf, message.length());
-    write_str(&buf, Response::message);
+    *buf_len = Response::RES_LEN_SIZE + res_len;
+    *buf = (char *) malloc(*buf_len);
+    char *b = *buf; // Use b instead of buf when writing because pointer gets incremented
+
+    write_uint32(&b, res_len);
+    write_uint32(&b, (uint32_t) Response::status);
+    write_uint32(&b, Response::message.length());
+    write_str(&b, Response::message);
 }
 
-Response Response::deserialize(const char *buf) {
-    buf += Response::RES_LEN_SIZE;
+Response *Response::deserialize(const char *buf, uint32_t buf_len, int *res) {
+    *res = 1;
+
+    if (buf_len < Response::RES_LEN_SIZE) {
+        *res = 0;
+        return NULL;
+    }
+
+    uint32_t res_len;
+    read_uint32(&res_len, &buf);
+
+    if (res_len > Response::MAX_RES_LEN) {
+        *res = -1;
+        return NULL;
+    } else if (buf_len < Response::RES_LEN_SIZE + res_len) {
+        *res = 0;
+        return NULL;
+    }
 
     Response::ResponseStatus status;
     read_uint32((uint32_t *) &status, &buf);
@@ -29,10 +53,14 @@ Response Response::deserialize(const char *buf) {
     std::string message;
     read_str(message, message_len, &buf);
 
-    return Response(status, message);
+    return new Response(status, message);
 }
 
 std::string Response::to_string() {
     return std::format("status: {}, message: {}", (uint32_t) Response::status, Response::message);
+}
+
+uint32_t Response::length() {
+    return Response::STATUS_SIZE + Response::MSG_LEN_SIZE + Response::message.length();
 }
  

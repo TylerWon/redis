@@ -73,14 +73,21 @@ int connect_to_server(struct addrinfo *res) {
  *          False on failure.
  */
 bool send_request(int server, Request request) {
-    char buf[4 + Request::MAX_REQ_LEN];
-    uint32_t n;
-    request.serialize(buf, &n);
-
-    if (send_all(server, buf, n) == -1) {
-        perror("failed to send message");
+    char *buf;
+    uint32_t buf_len;
+    request.serialize(&buf, &buf_len);
+    if (buf == NULL) {
+        log("request exceeds size limit");
         return false;
     }
+
+    if (send_all(server, buf, buf_len) == -1) {
+        perror("failed to send message");
+        free(buf);
+        return false;
+    }
+
+    free(buf);
 
     return true;
 }
@@ -90,11 +97,12 @@ bool send_request(int server, Request request) {
  * 
  * @param server    The server socket.
  * @param buf       Pointer to a char buffer where the response will be stored.
+ * @param n         Pointer to a uint32_t where the size of the response will be stored.
  * 
  * @return  True on success.
  *          False on failure.
  */
-bool recv_response(int server, char *buf) {
+bool recv_response(int server, char *buf, uint32_t *n) {
     if (recv_all(server, buf, 4) == -1) {
         perror("failed to receive response length");
         return false;
@@ -112,6 +120,8 @@ bool recv_response(int server, char *buf) {
         return false;
     }
 
+    *n = len + 4;
+
     return true;
 }
 
@@ -125,13 +135,20 @@ bool recv_response(int server, char *buf) {
  */
 bool handle_response(int server) {
     char buf[4 + Response::MAX_RES_LEN];
-    if (!recv_response(server, buf)) {
+    uint32_t n;
+    if (!recv_response(server, buf, &n)) {
         log("failed to receive response");
         return false;
     }
 
-    Response response = Response::deserialize(buf);
-    log(response.to_string());
+    int res;
+    Response *response = Response::deserialize(buf, n, &res);
+    if (res < 1) {
+        log("failed to deserialize response");
+        return false;
+    }
+    
+    log(response->to_string());
 
     return true;
 }
@@ -154,14 +171,6 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> command;
     for (int i = 1; i < argc; i++) {
         command.push_back(argv[i]);
-    }
-
-    uint32_t len = 0;
-    for (const std::string &s : command) {
-        len += 4 + s.length();  // 4 byte length header
-    }
-    if (len > Request::MAX_REQ_LEN) {
-        fatal("command is too long");
     }
 
     log("read command");

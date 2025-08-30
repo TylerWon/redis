@@ -4,12 +4,13 @@
 
 class Request {
     private:
+        // Constants for header sizes
         static const uint32_t REQ_LEN_SIZE  = 4;
         static const uint32_t NUM_STRS_SIZE = 4;
         static const uint32_t STR_LEN_SIZE  = 4;
     public:
         static const uint32_t MAX_REQ_LEN = 4096;
-
+        
         std::vector<std::string> command;
 
         Request(const std::vector<std::string> &command);
@@ -25,24 +26,31 @@ class Request {
          * - Length of string 2 (4 bytes)
          * - etc.
          * 
-         * @param buf   Pointer to a char buffer where the serialized Request will be stored.
-         * @param n     Pointer to a uint32_t where the length of the buffer will be stored.
+         * @param buf       Double pointer to a char buffer where the serialized Request will be stored. Should be freed 
+         *                  when no longer in use. 
+         * @param buf_len   Pointer to a uint32_t where the length of the buffer will be stored.
+         * 
+         * @return  The serialized Request in buf on success.
+         *          NULL in buf if Request exceeds the length limit.
          */
-        void serialize(char *buf, uint32_t *n);
+        void serialize(char **buf, uint32_t *buf_len);
 
         /**
          * Deserializes the Request in the provided buffer.
          * 
-         * @param buf   Pointer to a char buffer where the Request is stored.
+         * @param buf       Pointer to a char buffer where the Request is stored.
+         * @param buf_len   Number of bytes in the buffer.
+         * @param res       Pointer to an int where the result of the operation will be stored.
          * 
-         * @return  The Request.
+         * @return  Pointer to the Request and 1 in res on success. Returned Request should be deleted when no longer in use.
+         *          NULL and 0 in res if buffer contains half a Request.
+         *          NULL and -1 in res if Request in buffer exceeds the length limit.
          */
-        static Request deserialize(const char *buf);
+        static Request *deserialize(const char *buf, uint32_t buf_len, int *res);
 
-        /**
-         * Returns the Request as a string.
-         * 
-         * @return  The Request as a string.
-         */
+        /* Returns the Request as a string. */
         std::string to_string();
+
+        /* Returns the length of the Request (in bytes) */
+        uint32_t length();
 };
