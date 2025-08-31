@@ -3,18 +3,23 @@
 
 class Response {
     private:
-        // Constants for header sizes
-        static const uint32_t RES_LEN_SIZE  = 4;
         static const uint32_t STATUS_SIZE = 4;
         static const uint32_t MSG_LEN_SIZE  = 4;
     public:
-        static const uint32_t MAX_RES_LEN = 4096;
-
         enum ResponseStatus {
             RES_OK = 0,
             RES_ERR = 1,
             RES_NX = 2
         };
+
+        enum DeserializationStatus {
+            SUCCESS,
+            INCOMPLETE_RES,
+            RES_TOO_LARGE
+        };
+        
+        static const uint32_t RES_LEN_HEADER_SIZE  = 4;
+        static const uint32_t MAX_RES_LEN = 4096;
 
         ResponseStatus status;
         std::string message;
@@ -25,7 +30,7 @@ class Response {
          * Serializes the Response.
          * 
          * Serialized format:
-         * - Response length (4 bytes)
+         * - Response length header (4 bytes)
          * - Status (4 bytes)
          * - Message length (4 bytes)
          * - Message (variable size)
@@ -44,18 +49,18 @@ class Response {
          * 
          * @param buf       Pointer to a char buffer where the Response is stored.
          * @param buf_len   Number of bytes in the buffer.
-         * @param res       Pointer to an int where the result of the operation will be stored.
+         * @param response  Double pointer to a Response where the result of the operation will be stored. Should be
+         *                  freed when no longer in use.
          * 
-         * @return  Pointer to the Response and 1 in res on success. Returned Response should be deleted when no longer 
-         *          in use.
-         *          NULL and 0 in res if buffer contains half a Response.
-         *          NULL and -1 in res if Response in buffer exceeds the length limit.
+         * @return  SUCCESS if a Response is deserialized from the buffer.
+         *          INCOMPLETE_REQ if the buffer contains an incomplete Response.
+         *          RES_TOO_LARGE if the buffer contains a Response that exceeds the size limit.
          */
-        static Response *deserialize(const char *buf, uint32_t buf_len, int *res);
+        static DeserializationStatus deserialize(const char *buf, uint32_t buf_len, Response **response);
 
         /* Returns the Response as a string. */
         std::string to_string();
 
-        /* Returns the length of the Request (in bytes) */
+        /* Returns the length of the Response (in bytes) */
         uint32_t length();
 };

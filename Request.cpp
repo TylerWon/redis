@@ -17,7 +17,7 @@ void Request::serialize(char **buf, uint32_t *buf_len) {
         return;
     }
 
-    *buf_len = Request::REQ_LEN_SIZE + req_len;
+    *buf_len = Request::REQ_LEN_HEADER_SIZE + req_len;
     *buf = (char *) malloc(*buf_len);
     char *b = *buf; // Use b instead of buf when writing because pointer gets incremented
 
@@ -30,23 +30,18 @@ void Request::serialize(char **buf, uint32_t *buf_len) {
     }
 }
 
-Request *Request::deserialize(const char *buf, uint32_t buf_len, int *res) {
-    *res = 1;
-
-    if (buf_len < Request::REQ_LEN_SIZE) {
-        *res = 0;
-        return NULL;
+Request::DeserializationStatus Request::deserialize(const char *buf, uint32_t buf_len, Request **request) {
+    if (buf_len < Request::REQ_LEN_HEADER_SIZE) {
+        return Request::DeserializationStatus::INCOMPLETE_REQ;
     }
 
     uint32_t req_len;
     read_uint32(&req_len, &buf);
 
     if (req_len > Request::MAX_REQ_LEN) {
-        *res = -1;
-        return NULL;
-    } else if (buf_len < Request::REQ_LEN_SIZE + req_len) {
-        *res = 0;
-        return NULL;
+        return Request::DeserializationStatus::REQ_TOO_LARGE;
+    } else if (buf_len < Request::REQ_LEN_HEADER_SIZE + req_len) {
+        return Request::DeserializationStatus::INCOMPLETE_REQ;
     }
 
     uint32_t num_strs;
@@ -62,7 +57,9 @@ Request *Request::deserialize(const char *buf, uint32_t buf_len, int *res) {
         command.push_back(s);
     }
 
-    return new Request(command);
+    *request = new Request(command);
+
+    return Request::DeserializationStatus::SUCCESS;
 }
 
 std::string Request::to_string() {

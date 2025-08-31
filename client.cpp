@@ -103,7 +103,7 @@ bool send_request(int server, Request request) {
  *          False on failure.
  */
 bool recv_response(int server, char *buf, uint32_t *n) {
-    if (recv_all(server, buf, 4) == -1) {
+    if (recv_all(server, buf, Response::RES_LEN_HEADER_SIZE) == -1) {
         perror("failed to receive response length");
         return false;
     }
@@ -134,21 +134,18 @@ bool recv_response(int server, char *buf, uint32_t *n) {
  *          False on failure.
  */
 bool handle_response(int server) {
-    char buf[4 + Response::MAX_RES_LEN];
+    char buf[Response::RES_LEN_HEADER_SIZE + Response::MAX_RES_LEN];
     uint32_t n;
     if (!recv_response(server, buf, &n)) {
         log("failed to receive response");
         return false;
     }
 
-    int res;
-    Response *response = Response::deserialize(buf, n, &res);
-    if (res < 1) {
-        log("failed to deserialize response");
-        return false;
-    }
+    Response *response;
+    Response::deserialize(buf, n, &response); // recv_response ensures valid response is received so don't need to 
+                                              // check status of deserialize operation
     
-    log(response->to_string());
+    log(response->to_string().data());
 
     return true;
 }

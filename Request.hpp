@@ -4,11 +4,16 @@
 
 class Request {
     private:
-        // Constants for header sizes
-        static const uint32_t REQ_LEN_SIZE  = 4;
         static const uint32_t NUM_STRS_SIZE = 4;
         static const uint32_t STR_LEN_SIZE  = 4;
     public:
+        enum DeserializationStatus {
+            SUCCESS,
+            INCOMPLETE_REQ,
+            REQ_TOO_LARGE
+        };
+
+        static const uint32_t REQ_LEN_HEADER_SIZE  = 4;
         static const uint32_t MAX_REQ_LEN = 4096;
         
         std::vector<std::string> command;
@@ -19,7 +24,7 @@ class Request {
          * Serializes the Request.
          * 
          * Serialized format:
-         * - Request length (4 bytes)
+         * - Request length header (4 bytes)
          * - Number of strings (4 bytes)
          * - Length of string 1 (4 bytes)
          * - String 1 (variable size)
@@ -40,13 +45,14 @@ class Request {
          * 
          * @param buf       Pointer to a char buffer where the Request is stored.
          * @param buf_len   Number of bytes in the buffer.
-         * @param res       Pointer to an int where the result of the operation will be stored.
+         * @param request   Double pointer to a Request where the result of the operation will be stored. Should be
+         *                  freed when no longer in use.
          * 
-         * @return  Pointer to the Request and 1 in res on success. Returned Request should be deleted when no longer in use.
-         *          NULL and 0 in res if buffer contains half a Request.
-         *          NULL and -1 in res if Request in buffer exceeds the length limit.
+         * @return  SUCCESS if a Request is deserialized from the buffer.
+         *          INCOMPLETE_REQ if the buffer contains an incomplete Request.
+         *          REQ_TOO_LARGE if the buffer contains a Request that exceeds the size limit.
          */
-        static Request *deserialize(const char *buf, uint32_t buf_len, int *res);
+        static DeserializationStatus deserialize(const char *buf, uint32_t buf_len, Request **request);
 
         /* Returns the Request as a string. */
         std::string to_string();

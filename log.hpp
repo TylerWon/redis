@@ -1,9 +1,5 @@
-/**
- * Prints the provided message.
- */
-void log(const std::string msg);
+/* Prints the provided format string */
+void log(const char* fmt, ...);
 
-/** 
- * Prints the provided message then kills the program.
- */
-void fatal(const std::string msg);
+/* Prints the provided format string then kills the program. */
+void fatal(const char* fmt, ...);

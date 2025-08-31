@@ -15,7 +15,7 @@ void Response::serialize(char **buf, uint32_t *buf_len) {
         return;
     }
 
-    *buf_len = Response::RES_LEN_SIZE + res_len;
+    *buf_len = Response::RES_LEN_HEADER_SIZE + res_len;
     *buf = (char *) malloc(*buf_len);
     char *b = *buf; // Use b instead of buf when writing because pointer gets incremented
 
@@ -25,23 +25,18 @@ void Response::serialize(char **buf, uint32_t *buf_len) {
     write_str(&b, Response::message);
 }
 
-Response *Response::deserialize(const char *buf, uint32_t buf_len, int *res) {
-    *res = 1;
-
-    if (buf_len < Response::RES_LEN_SIZE) {
-        *res = 0;
-        return NULL;
+Response::DeserializationStatus Response::deserialize(const char *buf, uint32_t buf_len, Response **response) {
+    if (buf_len < Response::RES_LEN_HEADER_SIZE) {
+        return Response::DeserializationStatus::INCOMPLETE_RES;
     }
 
     uint32_t res_len;
     read_uint32(&res_len, &buf);
 
     if (res_len > Response::MAX_RES_LEN) {
-        *res = -1;
-        return NULL;
-    } else if (buf_len < Response::RES_LEN_SIZE + res_len) {
-        *res = 0;
-        return NULL;
+        return Response::DeserializationStatus::RES_TOO_LARGE;
+    } else if (buf_len < Response::RES_LEN_HEADER_SIZE + res_len) {
+        return Response::DeserializationStatus::INCOMPLETE_RES;
     }
 
     Response::ResponseStatus status;
@@ -53,7 +48,9 @@ Response *Response::deserialize(const char *buf, uint32_t buf_len, int *res) {
     std::string message;
     read_str(message, message_len, &buf);
 
-    return new Response(status, message);
+    *response = new Response(status, message);
+
+    return Response::DeserializationStatus::SUCCESS;
 }
 
 std::string Response::to_string() {
