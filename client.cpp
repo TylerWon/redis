@@ -183,5 +183,42 @@ int main(int argc, char *argv[]) {
         fatal("failed to handle response");
     }
 
+    // // TESTING
+    // // Test pipelined requests
+    // std::vector<std::vector<std::string>> commands = {
+    //     { "set", "status", "error" },
+    //     { "get", "status" },
+    //     { "del", "status" }
+    // };
+
+    // for (const std::vector<std::string> &command : commands) {
+    //     Request request(command);
+    //     if(!send_request(server, request)) {
+    //         fatal("failed to send '%s'", request.to_string().data());
+    //     }
+    // }
+
+    // for (uint32_t i = 0; i < commands.size(); ++i) {
+    //     if (!handle_response(server)) {
+    //         fatal("failed to handle response");
+    //     }
+    // }
+
+    // // Test max request size
+    // std::vector<std::string> command = { std::string(Request::MAX_REQ_LEN - 8, 'a')}; // subtract 8 for number of strings and string length headers that get added to a request
+
+    // Request request(command);
+    // if (!send_request(server, request)) {
+    //     fatal("failed to send request");
+    // }
+
+    // // Test exceeds max request size
+    // std::vector<std::string> command = { std::string(Request::MAX_REQ_LEN - 7, 'a')};
+
+    // Request request(command);
+    // if (send_request(server, request)) {
+    //     fatal("shouldn't have sent request");
+    // }
+
     return 0;
 }
