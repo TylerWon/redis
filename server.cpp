@@ -194,20 +194,18 @@ bool set_non_blocking(int fd) {
  * Handles a new connection on the listener socket.
  * 
  * @param listener  The listener socket.
- * 
- * @return  True on success.
- *          False on error.
  */
-bool handle_new_connection(int listener) {
+void handle_new_connection(int listener) {
     int client = accept(listener, NULL, NULL);
     if (client == -1) {
         log("failed to accept new connection");
-        return false;
+        return;
     }
 
     if (!set_non_blocking(client)) {
         log("failed to set socket to non-blocking");
-        return false;
+        close(client);
+        return;
     }
 
     Conn *conn = new Conn();
@@ -218,8 +216,6 @@ bool handle_new_connection(int listener) {
         fd_to_conn.resize(conn->fd + 1);
     }
     fd_to_conn[conn->fd] = conn;
-
-    return true;
 }
 
 /**
@@ -376,10 +372,9 @@ int main() {
             fatal("failed to poll");
         }
 
+        // listener socket always at index 0 of pollfds
         if (pollfds[0].revents & POLLIN) {
-            if (!handle_new_connection(listener)) {
-                log("failed to handle new connection");
-            }
+            handle_new_connection(listener);
         }
 
         for (uint32_t i = 1; i < pollfds.size(); i++) {
