@@ -9,37 +9,37 @@ Response::Response(ResponseStatus status, const std::string message) {
 }
 
 void Response::serialize(char **buf, uint32_t *buf_len) {
-    uint32_t res_len = Response::length();
-    if (res_len > Response::MAX_RES_LEN) {
+    uint32_t res_len = length();
+    if (res_len > MAX_RES_LEN) {
         *buf = NULL;
         return;
     }
 
-    *buf_len = Response::RES_LEN_HEADER_SIZE + res_len;
+    *buf_len = RES_LEN_HEADER_SIZE + res_len;
     *buf = (char *) malloc(*buf_len);
     char *b = *buf; // Use b instead of buf when writing because pointer gets incremented
 
     write_uint32(&b, res_len);
-    write_uint32(&b, (uint32_t) Response::status);
-    write_uint32(&b, Response::message.length());
-    write_str(&b, Response::message);
+    write_uint32(&b, (uint32_t) status);
+    write_uint32(&b, message.length());
+    write_str(&b, message);
 }
 
 Response::DeserializationStatus Response::deserialize(const char *buf, uint32_t buf_len, Response **response) {
-    if (buf_len < Response::RES_LEN_HEADER_SIZE) {
-        return Response::DeserializationStatus::INCOMPLETE_RES;
+    if (buf_len < RES_LEN_HEADER_SIZE) {
+        return DeserializationStatus::INCOMPLETE_RES;
     }
 
     uint32_t res_len;
     read_uint32(&res_len, &buf);
 
-    if (res_len > Response::MAX_RES_LEN) {
-        return Response::DeserializationStatus::RES_TOO_LARGE;
-    } else if (buf_len < Response::RES_LEN_HEADER_SIZE + res_len) {
-        return Response::DeserializationStatus::INCOMPLETE_RES;
+    if (res_len > MAX_RES_LEN) {
+        return DeserializationStatus::RES_TOO_LARGE;
+    } else if (buf_len < RES_LEN_HEADER_SIZE + res_len) {
+        return DeserializationStatus::INCOMPLETE_RES;
     }
 
-    Response::ResponseStatus status;
+    ResponseStatus status;
     read_uint32((uint32_t *) &status, &buf);
 
     uint32_t message_len;
@@ -50,14 +50,14 @@ Response::DeserializationStatus Response::deserialize(const char *buf, uint32_t 
 
     *response = new Response(status, message);
 
-    return Response::DeserializationStatus::SUCCESS;
+    return DeserializationStatus::SUCCESS;
 }
 
 std::string Response::to_string() {
-    return std::format("status: {}, message: {}", (uint32_t) Response::status, Response::message);
+    return std::format("status: {}, message: {}", (uint32_t) status, message);
 }
 
 uint32_t Response::length() {
-    return Response::STATUS_SIZE + Response::MSG_LEN_SIZE + Response::message.length();
+    return STATUS_SIZE + MSG_LEN_SIZE + message.length();
 }
  
