@@ -54,7 +54,19 @@ Response::DeserializationStatus Response::deserialize(const char *buf, uint32_t 
 }
 
 std::string Response::to_string() {
-    return std::format("status: {}, message: {}", (uint32_t) status, message);
+    std::string status_str;
+    switch (status) {
+        case Response::RES_OK:
+            status_str = "OK";
+            break;
+        case Response::RES_ERR:
+            status_str = "ERROR";
+            break;
+        case Response::RES_NX:
+            status_str = "NO_KEY";
+            break;
+    }
+    return std::format("status: {}, message: {}", status_str, message);
 }
 
 uint32_t Response::length() {

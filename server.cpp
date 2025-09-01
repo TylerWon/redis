@@ -126,7 +126,7 @@ Response execute_command(Request *request) {
         response.message = std::format("removed key '{}'", command[1]);
     } else {
         response.status = Response::ResponseStatus::RES_ERR;
-        response.message = std::format("'{}' is not a valid command", request->to_string());
+        response.message = "not a valid command";
     }
 
     log(response.message.data());
