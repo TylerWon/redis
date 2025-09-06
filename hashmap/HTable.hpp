@@ -24,7 +24,7 @@ class HTable {
         void insert(HNode *node);
 
         /**
-         * Checks if the key is in the HTable and returns its node if it is.
+         * Searches for the key in the HTable and returns its node if found.
          * 
          * @param key   A HNode containing the key to search for.
          * @param eq    A function that checks for the equality of two nodes.
