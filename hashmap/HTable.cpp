@@ -1,0 +1,39 @@
+#include "HTable.hpp"
+#include <cstdlib>
+#include <assert.h>
+
+HTable::HTable(size_t n) {
+    assert(n > 0 && ((n - 1) & n) == 0);
+
+    table = (HNode **) calloc(n, sizeof(HNode *)); 
+    num_slots = n;
+    num_keys = 0;
+    mask = n - 1;
+}
+
+void HTable::insert(HNode *node) {
+    uint64_t slot = node->hval & mask;
+    HNode *head = table[slot];
+    node->next = head;
+    table[slot] = node;
+    num_keys++;
+}
+
+HNode **HTable::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
+    uint64_t slot = key->hval & mask;
+    HNode **from = &table[slot];
+    for (HNode *curr = *from; curr != NULL; from = &curr->next) {
+        if (key->hval == curr->hval && eq(key, curr)) {
+            return from;
+        }
+    }
+    return NULL;
+}
+
+
+HNode *HTable::detach(HNode **from) {
+    HNode *node = *from;
+    *from = node->next;
+    num_keys--;
+    return node;
+}
