@@ -58,7 +58,7 @@ HNode *HMap::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
     migrate_keys();
 
     HNode **from = newer->lookup(key, eq);
-    if (from == NULL) {
+    if (from == NULL && older != NULL) {
         from = older->lookup(key, eq);
     }
 
@@ -73,7 +73,7 @@ HNode *HMap::remove(HNode *key, bool (*eq)(HNode *, HNode *)) {
         return newer->detach(from);
     }
 
-    if ((from = older->lookup(key, eq)) != NULL) {
+    if (older != NULL && (from = older->lookup(key, eq)) != NULL) {
         return older->detach(from);
     }
 
