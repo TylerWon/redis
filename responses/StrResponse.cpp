@@ -2,14 +2,14 @@
 #include "buf_utils.hpp"
 
 StrResponse::StrResponse(std::string msg) {
-    message = msg;
-    len = message.length();
+    this->msg = msg;
+    len = msg.length();
 }
 
 void StrResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_STR);
     buf.append_uint32(len);
-    buf.append(message.data(), len);
+    buf.append(msg.data(), len);
 }
 
 uint32_t StrResponse::length() {
@@ -29,5 +29,5 @@ Response* StrResponse::deserialize(const char *buf, uint32_t n) {
 }
 
 std::string StrResponse::to_string() {
-    return message;
+    return msg;
 }

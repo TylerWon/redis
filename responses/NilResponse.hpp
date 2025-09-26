@@ -11,7 +11,7 @@ class NilResponse : public Response {
         /**
          * Deserializes a NilResponse from the provided byte buffer.
          * 
-         * @param buf   Pointer to a byte buffer that stores the Response.
+         * @param buf   Pointer to a byte buffer that stores the NilResponse.
          * @param n     Size of the buffer.
          * 
          * @return  The Response.

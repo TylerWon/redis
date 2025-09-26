@@ -5,7 +5,7 @@ class StrResponse : public Response {
     private:
         const uint8_t LEN_SIZE = 4;
 
-        std::string message;
+        std::string msg;
         uint32_t len;
     protected:
         void serialize(Buffer &buf) override;
