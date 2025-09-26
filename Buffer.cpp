@@ -38,6 +38,10 @@ void Buffer::append(const char *arr, uint32_t n) {
     }
 }
 
+void Buffer::append_uint32(uint32_t data) {
+    append((char *) &data, 4);
+}
+
 void Buffer::consume(uint32_t n) {
     if (data_start == data_end) {
         log("nothing to remove");

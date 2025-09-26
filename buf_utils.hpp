@@ -3,6 +3,14 @@
 // Helpers for reading/writing various data types to a buffer for send()/recv()
 
 /**
+ * Reads a uint8_t from the src buffer, storing it in dest. Moves the buffer pointer by 1 after.
+ * 
+ * @param dest  Pointer a uint8_t where the result will be stored.
+ * @param src   Double pointer to a char buffer where the uint8_t will be read from.
+ */
+void read_uint8(uint8_t *dest, const char **src);
+
+/**
  * Reads a uint32_t from the src buffer, storing it in dest. Moves the buffer pointer by 4 after.
  * 
  * @param dest  Pointer a uint32_t where the result will be stored.

@@ -1,6 +1,6 @@
 #include <cstdint>
 
-/* Dynamic char buffer with constant time append and remove from front */
+/* Dynamic byte buffer with constant time append and remove from front */
 class Buffer {
     private:
         char *buffer_start;
@@ -13,10 +13,13 @@ class Buffer {
         /**
          * Appends n bytes from the provided array to the Buffer.
          * 
-         * @param arr   Pointer to a char array which contains the data to append.
+         * @param arr   Pointer to a byte array which contains the data to append.
          * @param n     The number of bytes to append to the Buffer from arr.
          */
         void append(const char *arr, uint32_t n);
+
+        /* Appends a uint32_t to the Buffer */
+        void append_uint32(uint32_t data);
 
         /**
          * Removes n bytes from the front of the Buffer.

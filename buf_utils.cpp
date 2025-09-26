@@ -4,9 +4,13 @@
 
 #include "buf_utils.hpp"
 
+void read_uint8(uint8_t *dest, const char **src) {
+    memcpy(dest, *src, 1);
+    *src += 1;
+}
+
 void read_uint32(uint32_t *dest, const char **src) {
     memcpy(dest, *src, 4);
-    *dest = ntohl(*dest);
     *src += 4;
 }
 
@@ -16,8 +20,7 @@ void read_str(std::string &dest, uint32_t str_len, const char **src) {
 }
 
 void write_uint32(char **dest, uint32_t src) {
-    uint32_t nbe = htonl(src);
-    memcpy(*dest, &nbe, 4);
+    memcpy(*dest, &src, 4);
     *dest += 4;
 }
 
