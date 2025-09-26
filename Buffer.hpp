@@ -18,6 +18,9 @@ class Buffer {
          */
         void append(const char *arr, uint32_t n);
 
+        /* Appends a uint8_t to the Buffer */
+        void append_uint8(uint8_t data);
+
         /* Appends a uint32_t to the Buffer */
         void append_uint32(uint32_t data);
 
