@@ -1,11 +1,11 @@
 #include "NilResponse.hpp"
 
-NilResponse* NilResponse::deserialize(const char *buf, uint32_t n) {
-    return new NilResponse();
-}
-
 void NilResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_NIL);
+}
+
+NilResponse* NilResponse::deserialize(const char *buf, uint32_t n) {
+    return new NilResponse();
 }
 
 uint32_t NilResponse::length() {

@@ -4,6 +4,14 @@
 class NilResponse : public Response {
     public:
         /**
+         * Serialized structure:
+         * +----------+
+         * | tag (1B) | 
+         * +----------+
+         */
+        void serialize(Buffer &buf) override;
+
+        /**
          * Deserializes a NilResponse from the provided byte buffer.
          * 
          * @param buf   Pointer to a byte buffer that stores the NilResponse.
@@ -12,14 +20,6 @@ class NilResponse : public Response {
          * @return  The Response.
          */
         static NilResponse* deserialize(const char *buf, uint32_t n);
-
-        /**
-         * Serialized structure:
-         * +----------+
-         * | tag (1B) | 
-         * +----------+
-         */
-        void serialize(Buffer &buf) override;
         
         uint32_t length() override;
 

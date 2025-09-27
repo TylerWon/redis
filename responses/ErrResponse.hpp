@@ -10,6 +10,14 @@ class ErrResponse : public Response {
         };
 
         ErrResponse(ErrorCode code, std::string msg): code(code), str_response(msg) {};
+        
+        /**
+         * Serialized structure:
+         * +----------+-----------+-----------------------------+
+         * | tag (1B) | code (1B) | StrResponse (variable size) |
+         * +----------+-----------+-----------------------------+
+         */
+        void serialize(Buffer &buf) override;
 
         /**
          * Deserializes an ErrResponse from the provided byte buffer.
@@ -20,14 +28,6 @@ class ErrResponse : public Response {
          * @return  The Response.
          */
         static ErrResponse* deserialize(const char *buf, uint32_t n);
-
-        /**
-         * Serialized structure:
-         * +----------+-----------+-----------------------------+
-         * | tag (1B) | code (1B) | StrResponse (variable size) |
-         * +----------+-----------+-----------------------------+
-         */
-        void serialize(Buffer &buf) override;
 
         uint32_t length() override;
 

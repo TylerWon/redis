@@ -2,6 +2,12 @@
 #include <buf_utils.hpp>
 #include <format>
 
+void ErrResponse::serialize(Buffer &buf) {
+    buf.append_uint8(TAG_ERR);
+    buf.append_uint8(code);
+    str_response.serialize(buf);
+}
+
 ErrResponse* ErrResponse::deserialize(const char *buf, uint32_t n) {
     buf += 1; // skip tag
 
@@ -13,12 +19,6 @@ ErrResponse* ErrResponse::deserialize(const char *buf, uint32_t n) {
     delete str_response;
 
     return new ErrResponse(code, msg);
-}
-
-void ErrResponse::serialize(Buffer &buf) {
-    buf.append_uint8(TAG_ERR);
-    buf.append_uint8(code);
-    str_response.serialize(buf);
 }
 
 uint32_t ErrResponse::length() {
