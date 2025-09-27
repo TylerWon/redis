@@ -32,6 +32,8 @@ class Response {
             INVALID_RES
         };
 
+        virtual ~Response() = default; // ensures destructor of concrete subclass is called
+
         /**
          * Marshals the Response into a packet to be sent over the network.
          * 

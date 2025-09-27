@@ -9,7 +9,9 @@ class ErrResponse : public Response {
             ERR_TOO_BIG
         };
 
-        ErrResponse(ErrorCode code, std::string msg): code(code), str_response(msg) {};
+        ErrResponse(ErrorCode code, std::string msg);
+        
+        ~ErrResponse();
         
         /**
          * Serialized structure:
@@ -42,5 +44,7 @@ class ErrResponse : public Response {
         static const uint8_t ERR_CODE_SIZE = 1;
 
         ErrorCode code;
-        StrResponse str_response;
+        StrResponse *str_response;
+
+        ErrResponse(ErrorCode code, StrResponse *str_response);
 };

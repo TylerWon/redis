@@ -2,10 +2,19 @@
 #include <buf_utils.hpp>
 #include <format>
 
+ErrResponse::ErrResponse(ErrorCode code, std::string msg) {
+    this->code = code;
+    this->str_response = new StrResponse(msg);
+}
+
+ErrResponse::~ErrResponse() {
+    delete str_response;
+}
+
 void ErrResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_ERR);
     buf.append_uint8(code);
-    str_response.serialize(buf);
+    str_response->serialize(buf);
 }
 
 ErrResponse* ErrResponse::deserialize(const char *buf, uint32_t n) {
@@ -14,19 +23,17 @@ ErrResponse* ErrResponse::deserialize(const char *buf, uint32_t n) {
     ErrorCode code;
     read_uint8((uint8_t *) &code, &buf);
 
-    StrResponse* str_response = StrResponse::deserialize(buf, n - TAG_SIZE - ERR_CODE_SIZE);
-    std::string msg = str_response->get_msg();
-    delete str_response;
+    StrResponse *str_response = StrResponse::deserialize(buf, n - TAG_SIZE - ERR_CODE_SIZE);
 
-    return new ErrResponse(code, msg);
+    return new ErrResponse(code, str_response);
 }
 
 uint32_t ErrResponse::length() {
-    return TAG_SIZE + ERR_CODE_SIZE + str_response.length();
+    return TAG_SIZE + ERR_CODE_SIZE + str_response->length();
 }
 
 std::string ErrResponse::to_string() {
-    return std::format("(error) {}", str_response.get_msg());
+    return std::format("(error) {}", str_response->get_msg());
 }
 
 ErrResponse::ErrorCode ErrResponse::get_err_code() {
@@ -34,5 +41,10 @@ ErrResponse::ErrorCode ErrResponse::get_err_code() {
 }
 
 std::string ErrResponse::get_err_msg() {
-    return str_response.get_msg();
+    return str_response->get_msg();
+}
+
+ErrResponse::ErrResponse(ErrorCode code, StrResponse *str_response) {
+    this->code = code;
+    this->str_response = str_response;
 }
