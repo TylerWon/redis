@@ -11,7 +11,7 @@ class NilResponse : public Response {
          * 
          * @return  The Response.
          */
-        static Response* deserialize(const char *buf, uint32_t n);
+        static NilResponse* deserialize(const char *buf, uint32_t n);
 
         /**
          * Serialized structure:

@@ -1,7 +1,7 @@
 #include "StrResponse.hpp"
 #include "buf_utils.hpp"
 
-Response* StrResponse::deserialize(const char *buf, uint32_t n) {
+StrResponse* StrResponse::deserialize(const char *buf, uint32_t n) {
     buf += 1; // skip tag
 
     uint32_t len;
@@ -24,5 +24,9 @@ uint32_t StrResponse::length() {
 }
 
 std::string StrResponse::to_string() {
+    return msg;
+}
+
+std::string StrResponse::get_msg() {
     return msg;
 }

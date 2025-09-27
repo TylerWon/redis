@@ -1,6 +1,6 @@
 #include "NilResponse.hpp"
 
-Response* NilResponse::deserialize(const char *buf, uint32_t n) {
+NilResponse* NilResponse::deserialize(const char *buf, uint32_t n) {
     return new NilResponse();
 }
 

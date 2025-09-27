@@ -18,7 +18,7 @@ class StrResponse : public Response {
          * 
          * @return  The Response.
          */
-        static Response* deserialize(const char *buf, uint32_t n);
+        static StrResponse* deserialize(const char *buf, uint32_t n);
 
         /**
          * Serialized structure:
@@ -31,4 +31,7 @@ class StrResponse : public Response {
         uint32_t length() override;
 
         std::string to_string() override;
+
+        /* Returns the message */
+        std::string get_msg();
 };
