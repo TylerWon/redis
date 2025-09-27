@@ -10,7 +10,7 @@ class Response {
         const uint32_t MAX_LEN = 30 << 20; // likely larger than the kernel buffer
         const uint8_t HEADER_SIZE = 4;
     protected:
-        const uint8_t TAG_SIZE = 1;
+        static const uint8_t TAG_SIZE = 1;
 
         /* Identifies the type of response when serialized */
         enum ResponseTag {
