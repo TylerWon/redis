@@ -6,8 +6,6 @@ class NilResponse : public Response {
         void serialize(Buffer &buf) override;
         uint32_t length() override;
     public:
-        NilResponse() {};
-
         /**
          * Deserializes a NilResponse from the provided byte buffer.
          * 

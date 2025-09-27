@@ -11,7 +11,7 @@ class StrResponse : public Response {
         void serialize(Buffer &buf) override;
         uint32_t length() override;
     public:
-        StrResponse(std::string msg);
+        StrResponse(std::string msg) : msg(msg), len(msg.length()) {};
 
         /**
          * Deserializes a StrResponse from the provided byte buffer.

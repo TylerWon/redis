@@ -1,11 +1,6 @@
 #include "StrResponse.hpp"
 #include "buf_utils.hpp"
 
-StrResponse::StrResponse(std::string msg) {
-    this->msg = msg;
-    len = msg.length();
-}
-
 void StrResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_STR);
     buf.append_uint32(len);
