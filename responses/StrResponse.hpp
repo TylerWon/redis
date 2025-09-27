@@ -7,9 +7,6 @@ class StrResponse : public Response {
 
         std::string msg;
         uint32_t len;
-    protected:
-        void serialize(Buffer &buf) override;
-        uint32_t length() override;
     public:
         StrResponse(std::string msg) : msg(msg), len(msg.length()) {};
 
@@ -22,6 +19,10 @@ class StrResponse : public Response {
          * @return  The Response.
          */
         static Response* deserialize(const char *buf, uint32_t n);
+
+        void serialize(Buffer &buf) override;
+        
+        uint32_t length() override;
 
         std::string to_string() override;
 };

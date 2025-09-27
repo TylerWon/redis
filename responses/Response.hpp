@@ -6,9 +6,10 @@
 
 /* Base response class */
 class Response {
-    protected:
+    private:
         const uint32_t MAX_LEN = 30 << 20; // likely larger than the kernel buffer
         const uint8_t HEADER_SIZE = 4;
+    protected:
         const uint8_t TAG_SIZE = 1;
 
         /* Identifies the type of response when serialized */
@@ -18,16 +19,6 @@ class Response {
             TAG_STR,
             TAG_INT
         };
-        
-        /**
-         * Serializes the Response.
-         * 
-         * @param buf   The Buffer that will store the serialized Response.
-         */
-        virtual void serialize(Buffer &buf) = 0;
-
-        /* Returns the length of the Response */
-        virtual uint32_t length() = 0;
     public:
         enum MarshalStatus {
             SUCCESS,
@@ -40,7 +31,7 @@ class Response {
             RES_TOO_BIG,
             INVALID_RES
         };
-        
+
         /**
          * Marshals the Response into a packet to be sent over the network.
          * 
@@ -68,6 +59,16 @@ class Response {
          */
         std::pair<std::optional<Response *>, UnmarshalStatus> unmarshal(const char *buf, uint32_t n);
 
+        /**
+         * Serializes the Response.
+         * 
+         * @param buf   The Buffer that will store the serialized Response.
+         */
+        virtual void serialize(Buffer &buf) = 0;
+
+        /* Returns the length of the Response */
+        virtual uint32_t length() = 0;
+        
         /* Returns the Response as a string */
         virtual std::string to_string() = 0;
 };

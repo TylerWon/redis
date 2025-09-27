@@ -2,9 +2,6 @@
 
 /* A Nil response */
 class NilResponse : public Response {
-    protected:
-        void serialize(Buffer &buf) override;
-        uint32_t length() override;
     public:
         /**
          * Deserializes a NilResponse from the provided byte buffer.
@@ -15,6 +12,10 @@ class NilResponse : public Response {
          * @return  The Response.
          */
         static Response* deserialize(const char *buf, uint32_t n);
+
+        void serialize(Buffer &buf) override;
+        
+        uint32_t length() override;
 
         std::string to_string() override;
 };
