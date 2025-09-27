@@ -3,6 +3,7 @@
 #include "NilResponse.hpp"
 #include "StrResponse.hpp"
 #include "ErrResponse.hpp"
+#include "IntResponse.hpp"
 
 Response::MarshalStatus Response::marshal(Buffer &buf) {
     if (length() > MAX_LEN) {
@@ -38,6 +39,8 @@ std::pair<std::optional<Response *>, Response::UnmarshalStatus> Response::unmars
             return std::make_pair(StrResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
         case TAG_ERR:
             return std::make_pair(ErrResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
+        case TAG_INT:
+            return std::make_pair(IntResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
         default:
             return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_RES);
     }
