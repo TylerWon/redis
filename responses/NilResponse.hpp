@@ -13,6 +13,12 @@ class NilResponse : public Response {
          */
         static Response* deserialize(const char *buf, uint32_t n);
 
+        /**
+         * Serialized structure:
+         * +----------+
+         * | tag (1B) | 
+         * +----------+
+         */
         void serialize(Buffer &buf) override;
         
         uint32_t length() override;

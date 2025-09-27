@@ -36,8 +36,9 @@ class Response {
          * Marshals the Response into a packet to be sent over the network.
          * 
          * Packet structure:
-         * - Length header (4 bytes): size of the packet
-         * - Data (variable length): serialized Response data
+         * +--------------------+----------------------+
+         * | length header (4B) | data (variable size) |
+         * +--------------------+----------------------+
          * 
          * @param buf   The Buffer that will store the packet.
          * 
