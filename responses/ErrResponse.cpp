@@ -13,7 +13,7 @@ ErrResponse::~ErrResponse() {
 }
 
 void ErrResponse::serialize(Buffer &buf) {
-    buf.append_uint8(TAG_ERR);
+    buf.append_uint8(ResponseTag::TAG_ERR);
     buf.append_uint8(code);
     str_response->serialize(buf);
 }

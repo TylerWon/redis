@@ -2,7 +2,7 @@
 #include "../buf_utils.hpp"
 
 void StrResponse::serialize(Buffer &buf) {
-    buf.append_uint8(TAG_STR);
+    buf.append_uint8(ResponseTag::TAG_STR);
     buf.append_uint32(len);
     buf.append(msg.data(), len);
 }

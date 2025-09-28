@@ -2,7 +2,7 @@
 #include "../buf_utils.hpp"
 
 void IntResponse::serialize(Buffer &buf) {
-    buf.append_uint8(TAG_INT);
+    buf.append_uint8(ResponseTag::TAG_INT);
     buf.append_uint32(num);
 }
 

@@ -33,13 +33,13 @@ std::pair<std::optional<Response *>, Response::UnmarshalStatus> Response::unmars
     buf -= 1;
 
     switch (res_tag) {
-        case TAG_NIL:
+        case ResponseTag::TAG_NIL:
             return std::make_pair(NilResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
-        case TAG_STR:
+        case ResponseTag::TAG_STR:
             return std::make_pair(StrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
-        case TAG_ERR:
+        case ResponseTag::TAG_ERR:
             return std::make_pair(ErrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
-        case TAG_INT:
+        case ResponseTag::TAG_INT:
             return std::make_pair(IntResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         default:
             return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_RES);

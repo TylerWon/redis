@@ -1,7 +1,7 @@
 #include "NilResponse.hpp"
 
 void NilResponse::serialize(Buffer &buf) {
-    buf.append_uint8(TAG_NIL);
+    buf.append_uint8(ResponseTag::TAG_NIL);
 }
 
 NilResponse* NilResponse::deserialize(const char *buf) {
