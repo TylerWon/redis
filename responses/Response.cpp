@@ -3,7 +3,7 @@
 #include "StrResponse.hpp"
 #include "ErrResponse.hpp"
 #include "IntResponse.hpp"
-#include "../buf_utils.hpp"
+#include "../utils/buf_utils.hpp"
 
 Response::MarshalStatus Response::marshal(Buffer &buf) {
     if (length() > MAX_LEN) {

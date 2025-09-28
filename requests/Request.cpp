@@ -3,8 +3,8 @@
 #include <netinet/in.h>
 
 #include "Request.hpp"
-#include "buf_utils.hpp"
-#include "log.hpp"
+#include "../utils/buf_utils.hpp"
+#include "../utils/log.hpp"
 
 Request::Request(const std::vector<std::string> &command) {
     Request::command = command;

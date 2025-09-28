@@ -8,8 +8,11 @@ SERVER = server
 # Collect all source files automatically
 COMMON_SRC := $(filter-out client.cpp server.cpp, \
               $(wildcard *.cpp) \
+			  $(wildcard buffer/*.cpp) \
               $(wildcard hashmap/*.cpp) \
-              $(wildcard responses/*.cpp))
+              $(wildcard requests/*.cpp) \
+              $(wildcard responses/*.cpp) \
+			  $(wildcard utils/*.cpp))
 
 # Object files
 COMMON_OBJ := $(COMMON_SRC:.cpp=.o)

@@ -1,7 +1,7 @@
 #include <format>
 
 #include "ErrResponse.hpp"
-#include "../buf_utils.hpp"
+#include "../utils/buf_utils.hpp"
 
 ErrResponse::ErrResponse(ErrorCode code, std::string msg) {
     this->code = code;

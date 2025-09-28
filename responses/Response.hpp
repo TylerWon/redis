@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <optional>
 
-#include "../Buffer.hpp"
+#include "../buffer/Buffer.hpp"
 
 /* Base response class */
 class Response {

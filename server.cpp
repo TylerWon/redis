@@ -11,17 +11,17 @@
 #include <poll.h>
 #include <fcntl.h>
 
-#include "net_utils.hpp"
-#include "log.hpp"
+#include "utils/net_utils.hpp"
+#include "utils/log.hpp"
 #include "constants.hpp"
-#include "Request.hpp"
-#include "buf_utils.hpp"
+#include "requests/Request.hpp"
+#include "utils/buf_utils.hpp"
 #include "responses/Response.hpp"
 #include "responses/NilResponse.hpp"
 #include "responses/StrResponse.hpp"
 #include "responses/IntResponse.hpp"
 #include "responses/ErrResponse.hpp"
-#include "Buffer.hpp"
+#include "buffer/Buffer.hpp"
 #include "hashmap/HMap.hpp"
 
 typedef struct Entry {

@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "log.hpp"
+#include "../utils/log.hpp"
 #include "Buffer.hpp"
 
 Buffer::Buffer() {

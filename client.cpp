@@ -6,12 +6,12 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#include "net_utils.hpp"
-#include "log.hpp"
+#include "utils/net_utils.hpp"
+#include "utils/log.hpp"
 #include "constants.hpp"
-#include "Request.hpp"
+#include "requests/Request.hpp"
 #include "responses/Response.hpp"
-#include "buf_utils.hpp"
+#include "utils/buf_utils.hpp"
 
 /**
  * Gets the server's address info which can be used in connect(). 
