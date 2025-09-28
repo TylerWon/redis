@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Response.hpp"
 
 /* A string response */
@@ -22,11 +24,10 @@ class StrResponse : public Response {
          * Deserializes a StrResponse from the provided byte buffer.
          * 
          * @param buf   Pointer to a byte buffer that stores the StrResponse.
-         * @param n     Size of the buffer.
          * 
          * @return  The Response.
          */
-        static StrResponse* deserialize(const char *buf, uint32_t n);
+        static StrResponse* deserialize(const char *buf);
         
         uint32_t length() override;
 

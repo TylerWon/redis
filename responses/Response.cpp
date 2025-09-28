@@ -1,9 +1,9 @@
-#include <buf_utils.hpp>
 #include "Response.hpp"
 #include "NilResponse.hpp"
 #include "StrResponse.hpp"
 #include "ErrResponse.hpp"
 #include "IntResponse.hpp"
+#include "../buf_utils.hpp"
 
 Response::MarshalStatus Response::marshal(Buffer &buf) {
     if (length() > MAX_LEN) {
@@ -34,13 +34,13 @@ std::pair<std::optional<Response *>, Response::UnmarshalStatus> Response::unmars
 
     switch (res_tag) {
         case TAG_NIL:
-            return std::make_pair(NilResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
+            return std::make_pair(NilResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         case TAG_STR:
-            return std::make_pair(StrResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
+            return std::make_pair(StrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         case TAG_ERR:
-            return std::make_pair(ErrResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
+            return std::make_pair(ErrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         case TAG_INT:
-            return std::make_pair(IntResponse::deserialize(buf, res_len), UnmarshalStatus::SUCCESS);
+            return std::make_pair(IntResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         default:
             return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_RES);
     }

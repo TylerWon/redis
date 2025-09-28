@@ -1,6 +1,7 @@
-#include "ErrResponse.hpp"
-#include <buf_utils.hpp>
 #include <format>
+
+#include "ErrResponse.hpp"
+#include "../buf_utils.hpp"
 
 ErrResponse::ErrResponse(ErrorCode code, std::string msg) {
     this->code = code;
@@ -17,13 +18,13 @@ void ErrResponse::serialize(Buffer &buf) {
     str_response->serialize(buf);
 }
 
-ErrResponse* ErrResponse::deserialize(const char *buf, uint32_t n) {
+ErrResponse* ErrResponse::deserialize(const char *buf) {
     buf += 1; // skip tag
 
     ErrorCode code;
     read_uint8((uint8_t *) &code, &buf);
 
-    StrResponse *str_response = StrResponse::deserialize(buf, n - TAG_SIZE - ERR_CODE_SIZE);
+    StrResponse *str_response = StrResponse::deserialize(buf);
 
     return new ErrResponse(code, str_response);
 }

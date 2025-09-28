@@ -1,12 +1,12 @@
 #include "IntResponse.hpp"
-#include "buf_utils.hpp"
+#include "../buf_utils.hpp"
 
 void IntResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_INT);
     buf.append_uint32(num);
 }
 
-IntResponse* IntResponse::deserialize(const char *buf, uint32_t n) {
+IntResponse* IntResponse::deserialize(const char *buf) {
     buf += 1; // skip tag
 
     uint32_t num;

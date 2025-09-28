@@ -1,5 +1,5 @@
 #include "StrResponse.hpp"
-#include "buf_utils.hpp"
+#include "../buf_utils.hpp"
 
 void StrResponse::serialize(Buffer &buf) {
     buf.append_uint8(TAG_STR);
@@ -7,7 +7,7 @@ void StrResponse::serialize(Buffer &buf) {
     buf.append(msg.data(), len);
 }
 
-StrResponse* StrResponse::deserialize(const char *buf, uint32_t n) {
+StrResponse* StrResponse::deserialize(const char *buf) {
     buf += 1; // skip tag
 
     uint32_t len;

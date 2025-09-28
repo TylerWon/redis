@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Response.hpp"
 #include "StrResponse.hpp"
 
@@ -25,11 +27,10 @@ class ErrResponse : public Response {
          * Deserializes an ErrResponse from the provided byte buffer.
          * 
          * @param buf   Pointer to a byte buffer that stores the ErrResponse.
-         * @param n     Size of the buffer.
-         * 
+
          * @return  The Response.
          */
-        static ErrResponse* deserialize(const char *buf, uint32_t n);
+        static ErrResponse* deserialize(const char *buf);
 
         uint32_t length() override;
 

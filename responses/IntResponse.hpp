@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Response.hpp"
 
 /* An integer response */
@@ -21,11 +23,10 @@ class IntResponse : public Response {
          * Deserializes an IntResponse from the provided byte buffer.
          * 
          * @param buf   Pointer to a byte buffer that stores the IntResponse.
-         * @param n     Size of the buffer.
-         * 
+
          * @return  The Response.
          */
-        static IntResponse* deserialize(const char *buf, uint32_t n);
+        static IntResponse* deserialize(const char *buf);
         
         uint32_t length() override;
 
