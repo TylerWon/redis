@@ -1,14 +1,13 @@
+#pragma once
+
 #include <string>
 #include <cstdint>
 #include <optional>
 
-#include <Buffer.hpp>
+#include "../Buffer.hpp"
 
 /* Base response class */
 class Response {
-    private:
-        const uint32_t MAX_LEN = 30 << 20; // likely larger than the kernel buffer
-        const uint8_t HEADER_SIZE = 4;
     protected:
         static const uint8_t TAG_SIZE = 1;
 
@@ -20,12 +19,15 @@ class Response {
             TAG_INT
         };
     public:
-        enum MarshalStatus {
+        static const uint8_t HEADER_SIZE = 4;
+        static const uint32_t MAX_LEN = 4096;
+
+        enum class MarshalStatus {
             SUCCESS,
             RES_TOO_BIG
         };
 
-        enum UnmarshalStatus {
+        enum class UnmarshalStatus {
             SUCCESS,
             INCOMPLETE_RES,
             RES_TOO_BIG,
@@ -60,7 +62,7 @@ class Response {
          *          (NULL, RES_TOO_BIG) when the Response in the buffer exceeds the size limit.
          *          (NULL, INVALID_RES) when the Response is not one of the Response tags.
          */
-        std::pair<std::optional<Response *>, UnmarshalStatus> unmarshal(const char *buf, uint32_t n);
+        static std::pair<std::optional<Response *>, UnmarshalStatus> unmarshal(const char *buf, uint32_t n);
 
         /**
          * Serializes the Response.

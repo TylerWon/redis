@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 
 /* Dynamic byte buffer with constant time append and remove from front */

@@ -16,7 +16,11 @@
 #include "constants.hpp"
 #include "Request.hpp"
 #include "buf_utils.hpp"
-#include "Response.hpp"
+#include "responses/Response.hpp"
+#include "responses/NilResponse.hpp"
+#include "responses/StrResponse.hpp"
+#include "responses/IntResponse.hpp"
+#include "responses/ErrResponse.hpp"
 #include "Buffer.hpp"
 #include "hashmap/HMap.hpp"
 
@@ -47,12 +51,12 @@ std::vector<Conn *> fd_to_conn; // map of all client connections, indexed by fd
 std::vector<struct pollfd> pollfds; // array of pollfds for poll()
 
 /**
- * Gets the address info for the server which can be used in bind().
+ * Gets the address info for the machine running this program which can be used in bind().
  * 
  * @return  Pointer to a struct addrinfo on success. Should be freed when no longer in use.
  *          NULL on error.
  */
-struct addrinfo *get_server_addr_info() {
+struct addrinfo *get_my_addr_info() {
     struct addrinfo *res;
     struct addrinfo hints;
 
@@ -188,8 +192,11 @@ void do_set(const std::string &key, const std::string &value) {
  * Deletes the entry for the provided key in the kv store.
  * 
  * @param key   The key to delete.
+ * 
+ * @return  1 if the key is deleted.
+ *          0 if the key does not exist in the kv store.
  */
-void do_del(const std::string &key) {
+uint8_t do_del(const std::string &key) {
     LookupEntry lookup_entry;
     lookup_entry.key = key;
     lookup_entry.node.hval = str_hash(key);
@@ -197,7 +204,10 @@ void do_del(const std::string &key) {
     HNode *node = kv_store.remove(&lookup_entry.node, are_entries_equal);
     if (node != NULL) {
         delete container_of(node, Entry, node);
+        return 1;
     }
+
+    return 0;
 }
 
 /**
@@ -210,32 +220,30 @@ void do_del(const std::string &key) {
  * 
  * @param request   Pointer to the Request.
  * 
- * @return  The Response for executing the command.
+ * @return  Pointer to the Response for executing the command.
  */
-Response execute_command(Request *request) {
-    Response response(Response::ResponseStatus::RES_OK, "");
+Response *execute_command(Request *request) {
+    Response *response;
     std::vector<std::string> &command = request->command;
 
     if (command.size() == 2 && command[0] == "get") {
         Entry *entry = do_get(command[1]);
         if (entry != NULL) {
-            response.message = std::format("got value '{}' for key '{}'", entry->val, entry->key);
+            response = new StrResponse(entry->val);
         } else {
-            response.status = Response::ResponseStatus::RES_NX;           
-            response.message = std::format("key '{}' does not exist", command[1]);
+            response = new NilResponse();
         }
     } else if (command.size() == 3 && command[0] == "set") {
         do_set(command[1], command[2]);
-        response.message = std::format("set key '{}' to value '{}'", command[1], command[2]);
+        response = new StrResponse("OK");
     } else if (command.size() == 2 && command[0] == "del") {
-        do_del(command[1]);
-        response.message = std::format("removed key '{}'", command[1]);
+        uint8_t result = do_del(command[1]);
+        response = new IntResponse(result);
     } else {
-        response.status = Response::ResponseStatus::RES_ERR;
-        response.message = "not a valid command";
+        response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
 
-    log(response.message.data());
+    log(response->to_string().data());
 
     return response;
 }
@@ -418,20 +426,24 @@ void handle_recv(Conn *conn) {
     }
 
     while (Request *request = parse_request(conn)) {
-        Response response = execute_command(request);
-        
-        char *buf;
-        uint32_t buf_len;
-        response.serialize(&buf, &buf_len);
-        if (buf == NULL) {
+        log("connection: %d, request: %s", conn->fd, request->to_string().data());
+
+        Response *response = execute_command(request);
+        if (response->marshal(conn->outgoing) == Response::MarshalStatus::RES_TOO_BIG) {
             log("response to connection %d exceeds the size limit", conn->fd);
+
+            delete response;
+            response = new ErrResponse(ErrResponse::ErrorCode::ERR_TOO_BIG, "response is too big");
+            response->marshal(conn->outgoing);
+
             conn->want_close = true;
+            delete response;
+
             return;
         }
-        conn->outgoing.append(buf, buf_len);
 
         delete request;
-        free(buf);
+        delete response;
     }
 
     if (conn->outgoing.size() > 0) {
@@ -459,7 +471,7 @@ void handle_close(Conn *conn) {
 }
 
 int main() {
-    struct addrinfo *res = get_server_addr_info();
+    struct addrinfo *res = get_my_addr_info();
     if (res == NULL) {
         fatal("failed to get server's addrinfo");
     }

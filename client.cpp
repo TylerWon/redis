@@ -10,7 +10,7 @@
 #include "log.hpp"
 #include "constants.hpp"
 #include "Request.hpp"
-#include "Response.hpp"
+#include "responses/Response.hpp"
 #include "buf_utils.hpp"
 
 /**
@@ -103,14 +103,14 @@ bool send_request(int server, Request request) {
  *          False on failure.
  */
 bool recv_response(int server, char *buf, uint32_t *n) {
-    if (recv_all(server, buf, Response::RES_LEN_HEADER_SIZE) == -1) {
-        perror("failed to receive response length");
+    if (recv_all(server, buf, Response::HEADER_SIZE) == -1) {
+        perror("failed to receive response header");
         return false;
     }
 
     uint32_t len;
     read_uint32(&len, (const char **) &buf);
-    if (len > Response::MAX_RES_LEN) {
+    if (len > Response::MAX_LEN) {
         printf("response is too long\n");
         return false;
     }
@@ -120,7 +120,7 @@ bool recv_response(int server, char *buf, uint32_t *n) {
         return false;
     }
 
-    *n = len + 4;
+    *n = Response::HEADER_SIZE + len;
 
     return true;
 }
@@ -134,18 +134,26 @@ bool recv_response(int server, char *buf, uint32_t *n) {
  *          False on failure.
  */
 bool handle_response(int server) {
-    char buf[Response::RES_LEN_HEADER_SIZE + Response::MAX_RES_LEN];
+    char buf[Response::HEADER_SIZE + Response::MAX_LEN];
     uint32_t n;
     if (!recv_response(server, buf, &n)) {
         log("failed to receive response");
         return false;
     }
 
-    Response *response;
-    Response::deserialize(buf, n, &response); // recv_response ensures valid response is received so don't need to 
-                                              // check status of deserialize operation
-    
-    log(response->to_string().data());
+    auto [response, status] = Response::unmarshal(buf, n);
+    if (status == Response::UnmarshalStatus::INCOMPLETE_RES) {
+        log("received incomplete response");
+        return false;
+    } else if (status == Response::UnmarshalStatus::RES_TOO_BIG) {
+        log("response is too big");
+        return false;
+    } else if (status == Response::UnmarshalStatus::INVALID_RES) {
+        log("response is invalid");
+        return false;
+    }
+
+    log((*response)->to_string().data());
 
     return true;
 }
@@ -186,9 +194,9 @@ int main(int argc, char *argv[]) {
     // // TESTING
     // // Test pipelined requests
     // std::vector<std::vector<std::string>> commands = {
-    //     { "set", "status", "error" },
-    //     { "get", "status" },
-    //     { "del", "status" }
+    //     { "set", "key", "test" },
+    //     { "get", "key" },
+    //     { "del", "key" }
     // };
 
     // for (const std::vector<std::string> &command : commands) {
