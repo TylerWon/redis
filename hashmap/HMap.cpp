@@ -3,41 +3,6 @@
 
 #include "HMap.hpp"
 
-HMap::HTable::HTable(size_t n) {
-    assert(n > 0 && ((n - 1) & n) == 0);
-
-    table = (HNode **) calloc(n, sizeof(HNode *)); 
-    num_slots = n;
-    num_keys = 0;
-    mask = n - 1;
-}
-
-void HMap::HTable::insert(HNode *node) {
-    uint64_t slot = node->hval & mask;
-    HNode *head = table[slot];
-    node->next = head;
-    table[slot] = node;
-    num_keys++;
-}
-
-HNode **HMap::HTable::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
-    uint64_t slot = key->hval & mask;
-    HNode **from = &table[slot];
-    for (HNode *curr = *from; curr != NULL; from = &curr->next) {
-        if (key->hval == curr->hval && eq(key, curr)) {
-            return from;
-        }
-    }
-    return NULL;
-}
-
-HNode *HMap::HTable::detach(HNode **from) {
-    HNode *node = *from;
-    *from = node->next;
-    num_keys--;
-    return node;
-}
-
 HMap::HMap() {
     newer = new HTable(8);
     older = NULL;

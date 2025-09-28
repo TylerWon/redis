@@ -6,7 +6,7 @@ CLIENT = client
 SERVER = server
 
 # Common sources (all shared modules go here)
-COMMON_SRC = Buffer.cpp buf_utils.cpp hashmap/HMap.cpp log.cpp net_utils.cpp Request.cpp Response.cpp
+COMMON_SRC = Buffer.cpp buf_utils.cpp hashmap/HMap.cpp hashmap/HTable.cpp log.cpp net_utils.cpp Request.cpp Response.cpp
 COMMON_OBJ = $(COMMON_SRC:.cpp=.o)
 
 # Unique sources
