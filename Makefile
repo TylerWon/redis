@@ -5,16 +5,21 @@ CXXFLAGS = -Wall -Wextra -std=c++20 -O2 -g
 CLIENT = client
 SERVER = server
 
-# Common sources (all shared modules go here)
-COMMON_SRC = Buffer.cpp buf_utils.cpp hashmap/HMap.cpp hashmap/HTable.cpp log.cpp net_utils.cpp Request.cpp Response.cpp
-COMMON_OBJ = $(COMMON_SRC:.cpp=.o)
+# Collect all source files automatically
+COMMON_SRC := $(filter-out client.cpp server.cpp, \
+              $(wildcard *.cpp) \
+              $(wildcard hashmap/*.cpp) \
+              $(wildcard responses/*.cpp))
+
+# Object files
+COMMON_OBJ := $(COMMON_SRC:.cpp=.o)
 
 # Unique sources
-CLIENT_SRC = client.cpp
-SERVER_SRC = server.cpp
+CLIENT_SRC := client.cpp
+SERVER_SRC := server.cpp
 
-CLIENT_OBJ = $(CLIENT_SRC:.cpp=.o)
-SERVER_OBJ = $(SERVER_SRC:.cpp=.o)
+CLIENT_OBJ := $(CLIENT_SRC:.cpp=.o)
+SERVER_OBJ := $(SERVER_SRC:.cpp=.o)
 
 # Rules
 all: $(CLIENT) $(SERVER)
@@ -26,6 +31,6 @@ $(SERVER): $(SERVER_OBJ) $(COMMON_OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f $(CLIENT) $(SERVER) *.o
+	rm -f $(CLIENT) $(SERVER) $(COMMON_OBJ) $(CLIENT_OBJ) $(SERVER_OBJ)
 
 .PHONY: all clean
