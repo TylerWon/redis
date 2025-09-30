@@ -30,7 +30,7 @@ std::pair<std::optional<Response *>, Response::UnmarshalStatus> Response::unmars
 
     uint8_t res_tag;
     read_uint8(&res_tag, &buf);
-    buf -= 1;
+    buf -= 1; // undo increment by read_uint8()
 
     switch (res_tag) {
         case ResponseTag::TAG_NIL:

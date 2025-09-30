@@ -6,6 +6,7 @@ void NilResponse::serialize(Buffer &buf) {
 
 NilResponse* NilResponse::deserialize(const char *buf) {
     (void) buf; // suppress unused parameter warning
+                // keep unused buf parameter so interface is consistent with other response types
     return new NilResponse();
 }
 
