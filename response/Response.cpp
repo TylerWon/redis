@@ -1,8 +1,8 @@
 #include "Response.hpp"
-#include "NilResponse.hpp"
-#include "StrResponse.hpp"
-#include "ErrResponse.hpp"
-#include "IntResponse.hpp"
+#include "types/NilResponse.hpp"
+#include "types/StrResponse.hpp"
+#include "types/ErrResponse.hpp"
+#include "types/IntResponse.hpp"
 #include "../utils/buf_utils.hpp"
 
 Response::MarshalStatus Response::marshal(Buffer &buf) {

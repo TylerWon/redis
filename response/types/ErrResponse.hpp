@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Response.hpp"
+#include "../Response.hpp"
 #include "StrResponse.hpp"
 
 /* An error response */

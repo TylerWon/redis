@@ -1,8 +1,8 @@
 #include <string>
 #include <cstdint>
 
-#include "HTable.hpp"
-#include "HNode.hpp"
+#include "components/HTable.hpp"
+#include "components/HNode.hpp"
 
 /* Dynamic hashtable using progressive rehashing */
 class HMap {

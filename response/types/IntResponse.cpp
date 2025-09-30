@@ -1,5 +1,5 @@
 #include "IntResponse.hpp"
-#include "../utils/buf_utils.hpp"
+#include "../../utils/buf_utils.hpp"
 
 void IntResponse::serialize(Buffer &buf) {
     buf.append_uint8(ResponseTag::TAG_INT);

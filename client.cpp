@@ -9,8 +9,8 @@
 #include "utils/net_utils.hpp"
 #include "utils/log.hpp"
 #include "constants.hpp"
-#include "requests/Request.hpp"
-#include "responses/Response.hpp"
+#include "request/Request.hpp"
+#include "response/Response.hpp"
 #include "utils/buf_utils.hpp"
 
 /**

@@ -1,5 +1,5 @@
 #include "StrResponse.hpp"
-#include "../utils/buf_utils.hpp"
+#include "../../utils/buf_utils.hpp"
 
 void StrResponse::serialize(Buffer &buf) {
     buf.append_uint8(ResponseTag::TAG_STR);

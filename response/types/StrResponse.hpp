@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Response.hpp"
+#include "../Response.hpp"
 
 /* A string response */
 class StrResponse : public Response {

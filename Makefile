@@ -10,8 +10,10 @@ COMMON_SRC := $(filter-out client.cpp server.cpp, \
               $(wildcard *.cpp) \
 			  $(wildcard buffer/*.cpp) \
               $(wildcard hashmap/*.cpp) \
-              $(wildcard requests/*.cpp) \
-              $(wildcard responses/*.cpp) \
+              $(wildcard hashmap/components/*.cpp) \
+              $(wildcard request/*.cpp) \
+              $(wildcard response/*.cpp) \
+              $(wildcard response/types/*.cpp) \
 			  $(wildcard utils/*.cpp))
 
 # Object files

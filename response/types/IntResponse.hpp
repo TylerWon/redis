@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Response.hpp"
+#include "../Response.hpp"
 
 /* An integer response */
 class IntResponse : public Response {
