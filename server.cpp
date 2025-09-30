@@ -382,10 +382,6 @@ Request *parse_request(Conn *conn) {
         log("request in connection %d's buffer exceeds the size limit", conn->fd);
         conn->want_close = true;
         return NULL;
-    } else if (status == Request::UnmarshalStatus::INVALID_REQ) {
-        log("request in connection %d's buffer is invalid", conn->fd);
-        conn->want_close = true;
-        return NULL;
     }
 
     conn->incoming.consume(Request::HEADER_SIZE + (*request)->length());

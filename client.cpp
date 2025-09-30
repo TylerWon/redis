@@ -10,7 +10,6 @@
 #include "utils/log.hpp"
 #include "constants.hpp"
 #include "requests/Request.hpp"
-#include "requests/CmdRequest.hpp"
 #include "responses/Response.hpp"
 #include "utils/buf_utils.hpp"
 
@@ -68,14 +67,14 @@ int connect_to_server(struct addrinfo *res) {
  * Sends a Request to the server.
  * 
  * @param server    The server socket.
- * @param request   Pointer to the Request.
+ * @param request   The Request.
  * 
  * @return  True on success.
  *          False on failure.
  */
-bool send_request(int server, Request *request) {
+bool send_request(int server, Request request) {
     Buffer buf;
-    if (request->marshal(buf) == Request::MarshalStatus::REQ_TOO_BIG) {
+    if (request.marshal(buf) == Request::MarshalStatus::REQ_TOO_BIG) {
         log("request exceeds size limit");
         return false;
     }
@@ -176,13 +175,12 @@ int main(int argc, char *argv[]) {
 
     log("read command");
 
-    Request *request = new CmdRequest(command);
+    Request request(command);
     if (!send_request(server, request)) {
         fatal("failed to send request");
     }
 
     log("sent request");
-    delete request;
 
     if (!handle_response(server)) {
         fatal("failed to handle response");

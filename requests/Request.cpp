@@ -1,6 +1,32 @@
 #include "Request.hpp"
-#include "CmdRequest.hpp"
 #include "../utils/buf_utils.hpp"
+
+void Request::serialize(Buffer &buf) {
+    buf.append_uint32(len);
+    for (const std::string &str : cmd) {
+        uint32_t str_len = str.length();
+        buf.append_uint32(str_len);
+        buf.append(str.data(), str_len);
+    }
+}
+
+Request* Request::deserialize(const char *buf) {
+    uint32_t len;
+    read_uint32(&len, &buf);
+
+    std::vector<std::string> cmd;
+    for (uint32_t i = 0; i < len; i++) {
+        uint32_t str_len;
+        read_uint32(&str_len, &buf);
+
+        std::string str;
+        read_str(str, str_len, &buf);
+
+        cmd.push_back(str);
+    }
+
+    return new Request(cmd);
+}
 
 Request::MarshalStatus Request::marshal(Buffer &buf) {
     if (length() > MAX_LEN) {
@@ -25,14 +51,31 @@ std::pair<std::optional<Request *>, Request::UnmarshalStatus> Request::unmarshal
         return std::make_pair(std::nullopt, UnmarshalStatus::INCOMPLETE_REQ);
     }
 
-    uint8_t res_tag;
-    read_uint8(&res_tag, &buf);
-    buf -= 1; // undo increment by read_uint8()
+    return std::make_pair(Request::deserialize(buf), UnmarshalStatus::SUCCESS);
+}
 
-    switch (res_tag) {
-        case RequestTag::TAG_CMD:
-            return std::make_pair(CmdRequest::deserialize(buf), UnmarshalStatus::SUCCESS);
-        default:
-            return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_REQ);
+uint32_t Request::length() {
+    uint32_t str_size = 0;
+    for (const std::string &str : cmd) {
+        str_size += STR_LEN_SIZE + str.length();
     }
+    return LEN_SIZE + str_size;
+}
+
+std::string Request::to_string() {
+    if (len < 1) {
+        return "";
+    }
+
+    std::string cmd_str = cmd[0];
+    for (uint32_t i = 1; i < len; i++) {
+        cmd_str += " ";
+        cmd_str += cmd[i];
+    }
+
+    return cmd_str;
+}
+
+std::vector<std::string> Request::get_cmd() {
+    return cmd;
 }
