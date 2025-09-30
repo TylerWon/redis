@@ -1,85 +1,38 @@
-#include <stdexcept>
-#include <cstring>
-#include <netinet/in.h>
-
 #include "Request.hpp"
+#include "CmdRequest.hpp"
 #include "../utils/buf_utils.hpp"
-#include "../utils/log.hpp"
 
-Request::Request(const std::vector<std::string> &command) {
-    Request::command = command;
+Request::MarshalStatus Request::marshal(Buffer &buf) {
+    if (length() > MAX_LEN) {
+        return MarshalStatus::REQ_TOO_BIG;
+    }
+    buf.append_uint32(length());
+    serialize(buf);
+    return MarshalStatus::SUCCESS;
 }
 
-void Request::serialize(char **buf, uint32_t *buf_len) {
-    uint32_t req_len = length();
-    if (req_len > MAX_REQ_LEN) {
-        *buf = NULL;
-        return;
-    }
-
-    *buf_len = REQ_LEN_HEADER_SIZE + req_len;
-    *buf = (char *) malloc(*buf_len);
-    char *b = *buf; // Use b instead of buf when writing because pointer gets incremented
-
-    write_uint32(&b, req_len);
-    write_uint32(&b, command.size());
-    for (const std::string &s : command) {
-        uint32_t s_len = s.length();
-        write_uint32(&b, s_len);
-        write_str(&b, s);
-    }
-}
-
-Request::DeserializationStatus Request::deserialize(const char *buf, uint32_t buf_len, Request **request) {
-    if (buf_len < REQ_LEN_HEADER_SIZE) {
-        return DeserializationStatus::INCOMPLETE_REQ;
+std::pair<std::optional<Request *>, Request::UnmarshalStatus> Request::unmarshal(const char *buf, uint32_t n) {
+    if (n < HEADER_SIZE) {
+        return std::make_pair(std::nullopt, UnmarshalStatus::INCOMPLETE_REQ);
     }
 
     uint32_t req_len;
     read_uint32(&req_len, &buf);
 
-    if (req_len > MAX_REQ_LEN) {
-        return DeserializationStatus::REQ_TOO_LARGE;
-    } else if (buf_len < REQ_LEN_HEADER_SIZE + req_len) {
-        return DeserializationStatus::INCOMPLETE_REQ;
+    if (req_len > MAX_LEN) {
+        return std::make_pair(std::nullopt, UnmarshalStatus::REQ_TOO_BIG);
+    } else if (n < HEADER_SIZE + req_len) {
+        return std::make_pair(std::nullopt, UnmarshalStatus::INCOMPLETE_REQ);
     }
 
-    uint32_t num_strs;
-    read_uint32(&num_strs, &buf);
+    uint8_t res_tag;
+    read_uint8(&res_tag, &buf);
+    buf -= 1; // undo increment by read_uint8()
 
-    std::vector<std::string> command;
-    while (num_strs > command.size()) {
-        uint32_t s_len;
-        read_uint32(&s_len, &buf);
-
-        std::string s;
-        read_str(s, s_len, &buf);
-        command.push_back(s);
+    switch (res_tag) {
+        case RequestTag::TAG_CMD:
+            return std::make_pair(CmdRequest::deserialize(buf), UnmarshalStatus::SUCCESS);
+        default:
+            return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_REQ);
     }
-
-    *request = new Request(command);
-
-    return DeserializationStatus::SUCCESS;
-}
-
-std::string Request::to_string() {
-    if (command.size() < 1) {
-        return "";
-    }
-
-    std::string result = command[0];
-    for (uint32_t i = 1; i < command.size(); i++) {
-        result += " ";
-        result += command[i];
-    }
-
-    return result;
-}
-
-uint32_t Request::length() {
-    uint32_t n = NUM_STRS_SIZE;
-    for (const std::string &s : command) {
-        n += STR_LEN_SIZE + s.length();
-    }   
-    return n;
 }

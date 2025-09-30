@@ -1,62 +1,80 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <optional>
 
+#include "../buffer/Buffer.hpp"
+
+/* Base request class */
 class Request {
-    private:
-        static const uint32_t NUM_STRS_SIZE = 4;
-        static const uint32_t STR_LEN_SIZE  = 4;
+    protected:
+        static const uint8_t TAG_SIZE = 1;
+
+        /* Identifies the type of request when serialized */
+        enum RequestTag {
+            TAG_CMD
+        };
     public:
-        enum DeserializationStatus {
+        static const uint8_t HEADER_SIZE = 4;
+        static const uint32_t MAX_LEN = 4096;
+
+        enum class MarshalStatus {
             SUCCESS,
-            INCOMPLETE_REQ,
-            REQ_TOO_LARGE
+            REQ_TOO_BIG
         };
 
-        static const uint32_t REQ_LEN_HEADER_SIZE  = 4;
-        static const uint32_t MAX_REQ_LEN = 4096;
-        
-        std::vector<std::string> command;
+        enum class UnmarshalStatus {
+            SUCCESS,
+            INCOMPLETE_REQ,
+            REQ_TOO_BIG,
+            INVALID_REQ
+        };
 
-        Request(const std::vector<std::string> &command);
+        virtual ~Request() = default; // ensures destructor of concrete subclass is called
+
+        /**
+         * Marshals the Request into a packet to be sent over the network.
+         * 
+         * Packet structure:
+         * +--------------------+----------------------+
+         * | length header (4B) | data (variable size) |
+         * +--------------------+----------------------+
+         * 
+         * @param buf   The Buffer that will store the packet.
+         * 
+         * @return  SUCCESS on success.
+         *          REQ_TOO_BIG when the Request exceeds the size limit.
+         */
+        MarshalStatus marshal(Buffer &buf);
+
+        /**
+         * Unmarshals a Request from a Request packet in the provided byte buffer.
+         * 
+         * @param buf   Pointer to a byte buffer that stores the Request packet.
+         * @param n     Size of the buffer.
+         * 
+         * @return  (Request, SUCCESS) on success.
+         *          (NULL, INCOMPLETE_REQ) when the buffer contains an incomplete Request.
+         *          (NULL, REQ_TOO_BIG) when the Request in the buffer exceeds the size limit.
+         *          (NULL, INVALID_REQ) when the Request is not one of the Request tags.
+         */
+        static std::pair<std::optional<Request *>, UnmarshalStatus> unmarshal(const char *buf, uint32_t n);
 
         /**
          * Serializes the Request.
          * 
-         * Serialized format:
-         * - Request length header (4 bytes)
-         * - Number of strings (4 bytes)
-         * - Length of string 1 (4 bytes)
-         * - String 1 (variable size)
-         * - Length of string 2 (4 bytes)
-         * - etc.
-         * 
-         * @param buf       Double pointer to a char buffer where the serialized Request will be stored. Should be freed 
-         *                  when no longer in use. 
-         * @param buf_len   Pointer to a uint32_t where the length of the buffer will be stored.
-         * 
-         * @return  The serialized Request in buf on success.
-         *          NULL in buf if Request exceeds the length limit.
+         * @param buf   The Buffer that will store the serialized Request.
          */
-        void serialize(char **buf, uint32_t *buf_len);
+        virtual void serialize(Buffer &buf) = 0;
 
-        /**
-         * Deserializes the Request in the provided buffer.
-         * 
-         * @param buf       Pointer to a char buffer where the Request is stored.
-         * @param buf_len   Number of bytes in the buffer.
-         * @param request   Double pointer to a Request where the result of the operation will be stored. Should be
-         *                  freed when no longer in use.
-         * 
-         * @return  SUCCESS if a Request is deserialized from the buffer.
-         *          INCOMPLETE_REQ if the buffer contains an incomplete Request.
-         *          REQ_TOO_LARGE if the buffer contains a Request that exceeds the size limit.
-         */
-        static DeserializationStatus deserialize(const char *buf, uint32_t buf_len, Request **request);
+        /* Returns the length of the Request */
+        virtual uint32_t length() = 0;
+        
+        /* Returns the Request as a string */
+        virtual std::string to_string() = 0;
 
-        /* Returns the Request as a string. */
-        std::string to_string();
-
-        /* Returns the length of the Request (in bytes) */
-        uint32_t length();
+        /* Returns the command */
+        virtual std::vector<std::string> get_cmd() = 0;
 };

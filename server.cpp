@@ -224,7 +224,7 @@ uint8_t do_del(const std::string &key) {
  */
 Response *execute_command(Request *request) {
     Response *response;
-    std::vector<std::string> &command = request->command;
+    std::vector<std::string> command = request->get_cmd();
 
     if (command.size() == 2 && command[0] == "get") {
         Entry *entry = do_get(command[1]);
@@ -374,19 +374,23 @@ bool recv_data(Conn *conn) {
  *          NULL if request cannot be parsed.
  */
 Request *parse_request(Conn *conn) {
-    Request *request;
-    Request::DeserializationStatus status = Request::deserialize(conn->incoming.data(), conn->incoming.size(), &request);
-    if (status == Request::DeserializationStatus::INCOMPLETE_REQ) {
+    auto [request, status] = Request::unmarshal(conn->incoming.data(), conn->incoming.size());
+
+    if (status == Request::UnmarshalStatus::INCOMPLETE_REQ) {
         return NULL;
-    } else if (status == Request::DeserializationStatus::REQ_TOO_LARGE) {
-        log("request in connection %d's buffer exceeds the size limit");
+    } else if (status == Request::UnmarshalStatus::REQ_TOO_BIG) {
+        log("request in connection %d's buffer exceeds the size limit", conn->fd);
+        conn->want_close = true;
+        return NULL;
+    } else if (status == Request::UnmarshalStatus::INVALID_REQ) {
+        log("request in connection %d's buffer is invalid", conn->fd);
         conn->want_close = true;
         return NULL;
     }
 
-    conn->incoming.consume(Request::REQ_LEN_HEADER_SIZE + request->length());
+    conn->incoming.consume(Request::HEADER_SIZE + (*request)->length());
 
-    return request;
+    return (*request);
 }
 
 /**
