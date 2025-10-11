@@ -21,6 +21,7 @@
 #include "response/types/StrResponse.hpp"
 #include "response/types/IntResponse.hpp"
 #include "response/types/ErrResponse.hpp"
+#include "response/types/ArrResponse.hpp"
 #include "buffer/Buffer.hpp"
 #include "hashmap/HMap.hpp"
 
@@ -129,7 +130,7 @@ uint64_t str_hash(const std::string &str) {
 }
 
 /**
- * Checks if two Entries are equal.
+ * Callback which checks if two hash map Entries are equal.
  * 
  * @param node1 The HNode contained by the first entry.
  * @param node2 The HNode contained by the second entry.
@@ -211,12 +212,37 @@ uint8_t do_del(const std::string &key) {
 }
 
 /**
+ * Callback which gets the key for an Entry in the hash map and stores it in the provided vector.
+ * 
+ * @param node  The HNode contained by the Entry which we want to get the key for.
+ * @param arg   Void pointer to a vector to store the key in. Void pointer type allows other callbacks to have a 
+ *              different type for their argument.
+ */
+void get_key(HNode *node, void *arg) {
+    std::vector<std::string> &keys = *(std::vector<std::string> *) arg;
+    Entry *entry = container_of(node, Entry, node);
+    keys.push_back(entry->key);
+}
+
+/**
+ * Gets all keys in the kv store.
+ * 
+ * @returns Vector containing the keys.
+ */
+std::vector<std::string> do_keys() {
+    std::vector<std::string> keys;
+    kv_store.for_each(get_key, (void *) &keys);
+    return keys;
+}
+
+/**
  * Executes the command in the Request.
  * 
- * There are three commands supported:
+ * The following commands are supported:
  * 1. get [key]
  * 2. set [key] [value]
  * 3. del [key]
+ * 4. keys
  * 
  * @param request   Pointer to the Request.
  * 
@@ -239,6 +265,13 @@ Response *execute_command(Request *request) {
     } else if (command.size() == 2 && command[0] == "del") {
         uint8_t result = do_del(command[1]);
         response = new IntResponse(result);
+    } else if (command.size() == 1 && command[0] == "keys") {
+        std::vector<std::string> keys = do_keys();
+        std::vector<Response *> elements;
+        for (const std::string &key : keys) {
+            elements.push_back(new StrResponse(key));
+        }
+        response = new ArrResponse(elements);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }

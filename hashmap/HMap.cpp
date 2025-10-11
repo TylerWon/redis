@@ -45,6 +45,13 @@ HNode *HMap::remove(HNode *key, bool (*eq)(HNode *, HNode *)) {
     return NULL;
 }
 
+void HMap::for_each(void (*cb)(HNode *, void *), void *cb_arg) {
+    newer->for_each(cb, cb_arg);
+    if (older != NULL) {
+        older->for_each(cb, cb_arg);
+    }
+}
+
 void HMap::migrate_keys() {
     if (older == NULL) {
         return;

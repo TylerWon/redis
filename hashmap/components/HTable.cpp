@@ -23,7 +23,7 @@ void HTable::insert(HNode *node) {
 HNode **HTable::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
     uint64_t slot = key->hval & mask;
     HNode **from = &table[slot];
-    for (HNode *curr = *from; curr != NULL; from = &curr->next) {
+    for (HNode *curr; (curr = *from) != NULL; from = &curr->next) {
         if (key->hval == curr->hval && eq(key, curr)) {
             return from;
         }
@@ -36,4 +36,12 @@ HNode *HTable::detach(HNode **from) {
     *from = node->next;
     num_keys--;
     return node;
+}
+
+void HTable::for_each(void (*cb)(HNode *, void *), void *cb_arg) {
+    for (uint64_t slot = 0; slot < num_slots; slot++) {
+        for (HNode *node = table[slot]; node != NULL; node = node->next) {
+            cb(node, cb_arg);
+        }
+    }
 }

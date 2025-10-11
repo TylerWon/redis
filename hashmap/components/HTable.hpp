@@ -45,4 +45,13 @@ class HTable {
          * @return  A pointer to the detached node.
          */
         HNode *detach(HNode **from);
+
+        /**
+         * Executes the provided callback function on each of the nodes in the HTable.
+         * 
+         * @param cb        The callback function.
+         * @param cb_arg    An argument for the callback. Void pointer type allows flexibility in argument type for 
+         *                  different callbacks.
+         */
+        void for_each(void (*cb)(HNode *, void *), void *cb_arg);
 };

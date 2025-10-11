@@ -44,6 +44,15 @@ class HMap {
          *          NULL if the key does not exist in the HMap.
          */
         HNode *remove(HNode *key, bool (*eq)(HNode *, HNode *));
+
+        /**
+         * Executes the provided callback function on each of the nodes in the HMap.
+         * 
+         * @param cb        The callback function.
+         * @param cb_arg    An argument for the callback. Void pointer type allows flexibility in argument type for 
+         *                  different callbacks.
+         */
+        void for_each(void (*cb)(HNode *, void *), void *cb_arg);
     private:
         /** 
          * Migrates a constant number of keys from the old hashtable to the new one. 

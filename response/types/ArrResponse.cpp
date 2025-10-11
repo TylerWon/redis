@@ -48,6 +48,7 @@ ArrResponse* ArrResponse::deserialize(const char *buf) {
         }
 
         elements.push_back(element);
+        buf += element->length(); // move buf pointer to next element in array
     }
 
     return new ArrResponse(elements);
@@ -68,8 +69,8 @@ std::string ArrResponse::to_string() {
     }
 
     std::string output = elements[0]->to_string();
-    for (Response *element : elements) {
-        output += ", " + element->to_string();
+    for (uint32_t i = 1; i < len; i++) {
+        output += ", " + elements[i]->to_string();
     }
 
     return output;
