@@ -1,5 +1,5 @@
 client
 server
-test_*
+test_avl_tree
 *.o
 .vscode
