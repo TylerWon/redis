@@ -21,27 +21,31 @@ class AVLTree {
          * Removes the node with the given key from the AVLTree.
          * 
          * @param key   Void pointer to the key to remove.
-         * @param cmp   Function that compares a node's key to the key. Should return < 0 if node's key < key, > 0 if
-         *              node's key > second node, and 0 if the two are equal.
+         * @param cmp   Function that compares a node's key to the key. Should return < 0 if key < node, > 0 if key > 
+         *              node, and 0 if the two are equal.
          * 
          * @return  Pointer to the node that was removed.
          *          NULL if a node with the key does not exist in the AVLTree.
          */
-        AVLNode *remove(void *key, int32_t (*cmp)(AVLNode *, void *));
+        AVLNode *remove(void *key, int32_t (*cmp)(void *, AVLNode *));
 
         /**
-         * Removes the node from the AVLTree.
+         * Removes the node from its AVLTree.
          * 
          * @param node  Pointer to the node to remove.
+         * 
+         * @return  Pointer to the root of the AVLTree.
          */
-        void remove(AVLNode *node);
+        static AVLNode *remove(AVLNode *node);
     private:
         /**
          * Fixes any imbalances starting at the given node up to the root of the AVLTree.
          * 
          * @param node  Pointer to the starting node.
+         * 
+         * @return  Pointer to the root of the AVLTree.
          */
-        void fix_imbalances(AVLNode *node);
+        static AVLNode *fix_imbalances(AVLNode *node);
 
         /**
          * Fixes an imbalance due to an AVLTree's left subtree being taller.
@@ -50,7 +54,7 @@ class AVLTree {
          * 
          * @return  Pointer to the root of the AVLTree. 
          */
-        AVLNode *fix_left_imbalance(AVLNode *root);
+        static AVLNode *fix_left_imbalance(AVLNode *root);
 
         /**
          * Fixes an imbalance due to an AVLTree's right subtree being taller.
@@ -59,7 +63,7 @@ class AVLTree {
          * 
          * @return  Pointer to the root of the AVLTree. 
          */
-        AVLNode *fix_right_imbalance(AVLNode *root);
+        static AVLNode *fix_right_imbalance(AVLNode *root);
 
         /**
          * Rotates an AVLTree to the left.
@@ -68,7 +72,7 @@ class AVLTree {
          * 
          * @return  Pointer to the root of the AVLTree.
          */
-        AVLNode *rotate_left(AVLNode *root);
+        static AVLNode *rotate_left(AVLNode *root);
         
         /**
          * Rotates an AVLTree to the right.
@@ -77,12 +81,14 @@ class AVLTree {
          * 
          * @return  Pointer to the root of the AVLTree.
          */
-        AVLNode *rotate_right(AVLNode *root);
+        static AVLNode *rotate_right(AVLNode *root);
 
         /**
-         * Removes a node with one or no child.
+         * Removes a node with one or no child from its AVLTree.
          * 
          * @param node  Pointer to the node to remove.
+         * 
+         * @return  Pointer to the root of the AVLTree.
          */
-        void remove_one_or_no_child(AVLNode *node);
+        static AVLNode *remove_one_or_no_child(AVLNode *node);
 };

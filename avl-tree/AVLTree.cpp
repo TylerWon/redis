@@ -19,19 +19,19 @@ void AVLTree::insert(AVLNode *new_node, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     *to_spot = new_node;
     new_node->parent = parent;
 
-    fix_imbalances(*to_spot);
+    root = fix_imbalances(*to_spot);
 }
 
-AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(AVLNode *, void *)) {
+AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(void *, AVLNode *)) {
     AVLNode *node = root;
     while (node != NULL) {
-        int32_t v = cmp(node, key);
+        int32_t v = cmp(key, node);
         if (v < 0) {
             node = node->left;
         } else if (v > 0) {
             node = node->right;
         } else {
-            remove(node);
+            root = remove(node);
             break;
         }
     }
@@ -39,45 +39,42 @@ AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(AVLNode *, void *)) {
     return node;
 }
 
-void AVLTree::remove(AVLNode *node) {
-    if (node == NULL) {
-        return;
-    }
-
+AVLNode *AVLTree::remove(AVLNode *node) {
     if (node->left == NULL || node->right == NULL) {
-        remove_one_or_no_child(node);
-    } else {
-        AVLNode *successor = node->right;
-        while (successor->left != NULL) {
-            successor = successor->left;
-        }
+        return remove_one_or_no_child(node);
+    } 
 
-        remove_one_or_no_child(successor); // in-order successor is the left-most child in the right subtree so can have at most 1 child 
-
-        // swap node with successor
-        // copy node's pointers
-        *successor = *node;
-
-        // change child's parent pointer to be successor
-        if (successor->left != NULL) {
-            successor->left->parent = successor;
-        }
-        if (successor->right != NULL) {
-            successor->right->parent = successor;
-        }
-
-        // change parent's child pointer to be successor
-        AVLNode *parent = successor->parent;
-        if (parent == NULL) {
-            root = successor;
-            return;
-        }
-        AVLNode **to_successor = parent->left == node ? &parent->left : &parent->right;
-        *to_successor = successor;
+    AVLNode *successor = node->right;
+    while (successor->left != NULL) {
+        successor = successor->left;
     }
+
+    AVLNode *root = remove_one_or_no_child(successor); // in-order successor is the left-most child in the right subtree so can have at most 1 child 
+
+    // swap node with successor
+    // copy node's pointers
+    *successor = *node;
+
+    // change child's parent pointer to be successor
+    if (successor->left != NULL) {
+        successor->left->parent = successor;
+    }
+    if (successor->right != NULL) {
+        successor->right->parent = successor;
+    }
+
+    // change parent's child pointer to be successor
+    AVLNode *parent = successor->parent;
+    if (parent == NULL) {
+        return successor;
+    }
+    AVLNode **to_successor = parent->left == node ? &parent->left : &parent->right;
+    *to_successor = successor;
+
+    return root;
 }
 
-void AVLTree::fix_imbalances(AVLNode *node) {
+AVLNode *AVLTree::fix_imbalances(AVLNode *node) {
     while (true) {
         AVLNode **to_node = &node; // incoming pointer to the node (i.e. address of parent's left or right)
         AVLNode *parent = node->parent;
@@ -97,8 +94,7 @@ void AVLTree::fix_imbalances(AVLNode *node) {
         }
 
         if (parent == NULL) {
-            root = node;
-            return;
+            return *to_node;
         }
 
         node = parent; 
@@ -153,7 +149,7 @@ AVLNode *AVLTree::rotate_right(AVLNode *root) {
     return new_root;
 }
 
-void AVLTree::remove_one_or_no_child(AVLNode *node) {
+AVLNode *AVLTree::remove_one_or_no_child(AVLNode *node) {
     AVLNode *replacement = node->left != NULL ? node->left : node->right;
     AVLNode *parent = node->parent;
 
@@ -162,12 +158,11 @@ void AVLTree::remove_one_or_no_child(AVLNode *node) {
     }
 
     if (parent == NULL) {
-        root = replacement;
-        return;
+        return replacement;
     }
 
     AVLNode **to_node = parent->left == node ? &parent->left : &parent->right;
     *to_node = replacement;
 
-    fix_imbalances(parent); // replacement's height doesn't change so first possible unbalanced node is its parent
+    return fix_imbalances(parent); // replacement's height doesn't change so first possible unbalanced node is its parent
 }
