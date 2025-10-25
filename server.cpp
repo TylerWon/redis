@@ -24,6 +24,7 @@
 #include "response/types/ArrResponse.hpp"
 #include "buffer/Buffer.hpp"
 #include "hashmap/HMap.hpp"
+#include "utils/intrusive_data_structure_utils.hpp"
 
 typedef struct Entry {
     HNode node;

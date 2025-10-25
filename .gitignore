@@ -1,4 +1,5 @@
 client
 server
+test_*
 *.o
 .vscode
