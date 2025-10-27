@@ -5,14 +5,7 @@ void AVLTree::insert(AVLNode *new_node, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     AVLNode *parent = NULL;
     AVLNode **to_spot = &root; // incoming pointer to the node's spot in the tree (i.e. address of parent's left or right)
     for (AVLNode *node = *to_spot; node != NULL; node = *to_spot) {
-        int32_t v = cmp(new_node, node);
-        if (v < 0) {
-            to_spot = &node->left;
-        } else {
-            // duplicates are inserted to the right of the original
-            to_spot = &node->right;
-        }
-
+        to_spot = cmp(new_node, node) < 0 ? &node->left : &node->right; // duplicates are inserted to the right of the original
         parent = node;
     }
 
