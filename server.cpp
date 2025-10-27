@@ -25,6 +25,7 @@
 #include "buffer/Buffer.hpp"
 #include "hashmap/HMap.hpp"
 #include "utils/intrusive_data_structure_utils.hpp"
+#include "utils/hash_utils.hpp"
 
 typedef struct Entry {
     HNode node;
@@ -110,24 +111,6 @@ int start_server(struct addrinfo *res) {
     }
 
     return -1;
-}
-
-/**
- * Hashes a string using the FNV-1 hashing algorithm.
- * 
- * Reference: https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1_hash
- * 
- * @param str   The string to hash.
- * 
- * @return  The FNV-1 hash value of the string.
- */
-uint64_t str_hash(const std::string &str) {
-    uint64_t hash = 0xcbf29ce484222325;
-    for (const uint8_t c : str) {
-        hash *= 0x100000001b3;
-        hash ^= c;
-    }
-    return hash;
 }
 
 /**
