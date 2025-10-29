@@ -2,26 +2,16 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++20 -O2 -g
 
 # Source files
-COMMON_SRC := $(filter-out client.cpp server.cpp, \
-              $(wildcard *.cpp) \
-              $(wildcard avl-tree/*.cpp) \
-              $(wildcard avl-tree/components/*.cpp) \
-			  $(wildcard buffer/*.cpp) \
-              $(wildcard hashmap/*.cpp) \
-              $(wildcard hashmap/components/*.cpp) \
-              $(wildcard request/*.cpp) \
-              $(wildcard response/*.cpp) \
-              $(wildcard response/types/*.cpp) \
-			  $(wildcard utils/*.cpp))
-CLIENT_SRC := client.cpp
-SERVER_SRC := server.cpp
-TEST_SRC := $(shell find . -type f -path "*/tests/test_*.cpp")
+CLIENT_SRC := ./client.cpp
+SERVER_SRC := ./server.cpp
+TEST_SRC := $(shell find . -name "test_*.cpp")
+COMMON_SRC := $(filter-out $(CLIENT_SRC) $(SERVER_SRC) $(TEST_SRC), $(shell find . -name "*.cpp")) 
 
 # Object files
-COMMON_OBJ := $(COMMON_SRC:.cpp=.o)
 CLIENT_OBJ := $(CLIENT_SRC:.cpp=.o)
 SERVER_OBJ := $(SERVER_SRC:.cpp=.o)
 TEST_OBJ := $(TEST_SRC:.cpp=.o)
+COMMON_OBJ := $(COMMON_SRC:.cpp=.o)
 
 # Executables
 CLIENT = client
