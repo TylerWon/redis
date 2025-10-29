@@ -54,4 +54,7 @@ class HTable {
          *                  different callbacks.
          */
         void for_each(void (*cb)(HNode *, void *), void *cb_arg);
+
+        /* Returns the number of elements in the HTable */
+        uint32_t length();
 };

@@ -35,6 +35,9 @@ class SortedSet {
          * @param pair  Pointer to the pair to remove.
          */
         void remove(SPair *pair);
+
+        /* Returns the number of pairs in the SortedSet */
+        uint32_t length();
     private:
         HMap map; // used for point queries
         AVLTree tree; // used for range and rank queries

@@ -70,8 +70,15 @@ void SortedSet::remove(SPair *pair) {
     lookup_pair.name = pair->name;
     lookup_pair.len = pair->len;
     HNode *map_node = map.remove(&lookup_pair.node, are_pairs_equal);
+    if (map_node == NULL) {
+        return;
+    }
     tree.remove(&pair->tree_node);
     spair_del(pair);
+}
+
+uint32_t SortedSet::length() {
+    return map.length();
 }
 
 void SortedSet::update(SPair *pair, double score) {

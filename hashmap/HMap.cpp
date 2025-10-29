@@ -52,6 +52,10 @@ void HMap::for_each(void (*cb)(HNode *, void *), void *cb_arg) {
     }
 }
 
+uint32_t HMap::length() {
+    return older != NULL ? newer->length() + older->length() : newer->length();
+}
+
 void HMap::migrate_keys() {
     if (older == NULL) {
         return;

@@ -53,6 +53,9 @@ class HMap {
          *                  different callbacks.
          */
         void for_each(void (*cb)(HNode *, void *), void *cb_arg);
+
+        /* Returns the number of elements in the HMap */
+        uint32_t length();
     private:
         /** 
          * Migrates a constant number of keys from the old hashtable to the new one. 
