@@ -64,13 +64,12 @@ SPair *SortedSet::lookup(const char *name, uint32_t len) {
     return map_node != NULL ? container_of(map_node, SPair, map_node) : NULL;
 }
 
-void SortedSet::remove(const char *name, uint32_t len) {
+void SortedSet::remove(SPair *pair) {
     LookupSPair lookup_pair;
-    lookup_pair.node.hval = str_hash(name, len);
-    lookup_pair.name = name;
-    lookup_pair.len = len;
+    lookup_pair.node.hval = pair->map_node.hval;
+    lookup_pair.name = pair->name;
+    lookup_pair.len = pair->len;
     HNode *map_node = map.remove(&lookup_pair.node, are_pairs_equal);
-    SPair *pair = container_of(map_node, SPair, map_node);
     tree.remove(&pair->tree_node);
     spair_del(pair);
 }

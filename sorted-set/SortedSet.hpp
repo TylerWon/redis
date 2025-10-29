@@ -19,7 +19,7 @@ class SortedSet {
         bool insert(const char *name, uint32_t len, double score);
 
         /** 
-         * Searches for a pair with the given name.
+         * Searches for a pair with the given name from the SortedSet.
          * 
          * @param name  Byte array that stores the name.
          * @param len   Length of the name.
@@ -30,12 +30,11 @@ class SortedSet {
         SPair *lookup(const char *name, uint32_t len);
 
         /**
-         * Removes the pair with the given name.
+         * Removes the pair from the SortedSet.
          * 
-         * @param name  Byte array that stores the name.
-         * @param len   Length of the name.
+         * @param pair  Pointer to the pair to remove.
          */
-        void remove(const char *name, uint32_t len);
+        void remove(SPair *pair);
     private:
         HMap map; // used for point queries
         AVLTree tree; // used for range and rank queries
