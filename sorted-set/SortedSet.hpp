@@ -19,7 +19,7 @@ class SortedSet {
         bool insert(const char *name, uint32_t len, double score);
 
         /** 
-         * Searches for a pair with the given name from the SortedSet.
+         * Searches for a pair with the given name in the SortedSet.
          * 
          * @param name  Byte array that stores the name.
          * @param len   Length of the name.
