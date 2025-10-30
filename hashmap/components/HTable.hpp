@@ -12,9 +12,9 @@ class HTable {
         uint64_t num_keys;
     
         /**
-         * Initializes an HTable.
+         * Initializes a HTable with n slots. 
          * 
-         * @param n     Size of the HTable. Must be a power of 2.
+         * @param n Size of the HTable. Must be a power of 2.
          */
         HTable(uint64_t n);
 
