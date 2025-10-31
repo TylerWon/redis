@@ -51,7 +51,7 @@ void test_insert_node() {
     Data data(0, 0);
     
     table.insert(&data.node);
-    assert(table.length() == 1);
+    assert(table.num_keys == 1);
     assert(table.table[0] == &data.node);
     assert(data.node.next == NULL);
 }
@@ -63,7 +63,7 @@ void test_insert_nodes_into_same_slot() {
 
     table.insert(&data1.node);
     table.insert(&data2.node);
-    assert(table.length() == 2);
+    assert(table.num_keys == 2);
     assert(table.table[7] == &data2.node);
     assert(data2.node.next == &data1.node);
     assert(data1.node.next == NULL);
@@ -74,7 +74,7 @@ void test_insert_node_with_hash_larger_than_number_of_slots() {
     Data data(20, 0);
     
     table.insert(&data.node);
-    assert(table.length() == 1);
+    assert(table.num_keys == 1);
     assert(table.table[4] == &data.node);
     assert(data.node.next == NULL);
 }
@@ -128,7 +128,7 @@ void test_detach_node_at_start_of_chain() {
 
     HNode **from = table.lookup(&data2.node, are_data_equal);
     HNode *node = table.detach(from);
-    assert(table.length() == 1);
+    assert(table.num_keys == 1);
     assert(node == &data2.node);
     assert(table.table[1] == &data1.node);
     assert(data1.node.next == NULL);
@@ -143,7 +143,7 @@ void test_detach_node_in_chain() {
 
     HNode **from = table.lookup(&data1.node, are_data_equal);
     HNode *node = table.detach(from);
-    assert(table.length() == 1);
+    assert(table.num_keys == 1);
     assert(node == &data1.node);
     assert(table.table[6] == &data2.node);
     assert(data2.node.next == NULL);
@@ -156,7 +156,7 @@ void test_detach_only_node_in_chain() {
 
     HNode **from = table.lookup(&data.node, are_data_equal);
     HNode *node = table.detach(from);
-    assert(table.length() == 0);
+    assert(table.num_keys == 0);
     assert(node == &data.node);
     assert(table.table[4] == NULL);
 }

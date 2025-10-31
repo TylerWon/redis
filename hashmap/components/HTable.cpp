@@ -45,7 +45,3 @@ void HTable::for_each(void (*cb)(HNode *, void *), void *cb_arg) {
         }
     }
 }
-
-uint32_t HTable::length() {
-    return num_keys; 
-}
