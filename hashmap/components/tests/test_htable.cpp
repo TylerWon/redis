@@ -3,41 +3,41 @@
 #include "../HTable.hpp"
 #include "../../../utils/intrusive_data_structure_utils.hpp"
 
-struct Data {
+struct Item {
     HNode node;
     int val;
 
-    Data(uint64_t hval, int val) {
+    Item(uint64_t hval, int val) {
         node.hval = hval;
         this->val = val;
     }
 };
 
 /**
- * Callback which checks if two Data in an HTable are equal.
+ * Callback which checks if two Items in an HTable are equal.
  * 
- * @param node1 The HNode contained by the first Data.
- * @param node2 The HNode contained by the second Data.
+ * @param node1 The HNode contained by the first Item.
+ * @param node2 The HNode contained by the second Item.
  * 
- * @return  True if Data are equal.
+ * @return  True if Items are equal.
  *          False otherwise.
  */
-bool are_data_equal(HNode *node1, HNode *node2) {
-    Data *data1 = container_of(node1, Data, node);
-    Data *data2 = container_of(node2, Data, node);
-    return data1->val == data2->val;
+bool are_items_equal(HNode *node1, HNode *node2) {
+    Item *item1 = container_of(node1, Item, node);
+    Item *item2 = container_of(node2, Item, node);
+    return item1->val == item2->val;
 }
 
 /**
- * Callback which multiples the value of a Data in an HTable by the given arg.
+ * Callback which multiples the value of an Item in an HTable by the given multiplier.
  * 
- * @param node  The HNode contained by Data.
+ * @param node  The HNode contained by the Item.
  * @param arg   Void pointer to an integer multiplier.
  */
 void multiply(HNode *node, void *arg) {
-    Data *data = container_of(node, Data, node);
+    Item *item = container_of(node, Item, node);
     int multipler = *((int *) arg);
-    data->val *= multipler;
+    item->val *= multipler;
 }
 
 void test_constructor() {
@@ -48,133 +48,133 @@ void test_constructor() {
 
 void test_insert_node() {
     HTable table(8);
-    Data data(0, 0);
+    Item item(0, 0);
     
-    table.insert(&data.node);
+    table.insert(&item.node);
     assert(table.num_keys == 1);
-    assert(table.table[0] == &data.node);
-    assert(data.node.next == NULL);
+    assert(table.table[0] == &item.node);
+    assert(item.node.next == NULL);
 }
 
 void test_insert_nodes_into_same_slot() {
     HTable table(8);
-    Data data1 (7, 0);
-    Data data2 (7, 1);
+    Item item1(7, 0);
+    Item item2(7, 1);
 
-    table.insert(&data1.node);
-    table.insert(&data2.node);
+    table.insert(&item1.node);
+    table.insert(&item2.node);
     assert(table.num_keys == 2);
-    assert(table.table[7] == &data2.node);
-    assert(data2.node.next == &data1.node);
-    assert(data1.node.next == NULL);
+    assert(table.table[7] == &item2.node);
+    assert(item2.node.next == &item1.node);
+    assert(item1.node.next == NULL);
 }
 
 void test_insert_node_with_hash_larger_than_number_of_slots() {
     HTable table(8);
-    Data data(20, 0);
+    Item item(20, 0);
     
-    table.insert(&data.node);
+    table.insert(&item.node);
     assert(table.num_keys == 1);
-    assert(table.table[4] == &data.node);
-    assert(data.node.next == NULL);
+    assert(table.table[4] == &item.node);
+    assert(item.node.next == NULL);
 }
 
 void test_lookup_on_empty_table() {
     HTable table(8);
 
-    Data data (3, 0);
-    HNode **from = table.lookup(&data.node, are_data_equal);
+    Item item(3, 0);
+    HNode **from = table.lookup(&item.node, are_items_equal);
     assert(from == NULL);
 }
 
 void test_lookup_non_existent_node() {
     HTable table(8);
-    Data data1 (3, 0);
-    table.insert(&data1.node);
+    Item item1(3, 0);
+    table.insert(&item1.node);
 
-    Data data2 (4, 1);
-    HNode **from = table.lookup(&data2.node, are_data_equal);
+    Item item2(4, 1);
+    HNode **from = table.lookup(&item2.node, are_items_equal);
     assert(from == NULL);
 }
 
 void test_lookup_node_at_start_of_chain() {
     HTable table(8);
-    Data data (3, 0);
-    table.insert(&data.node);
+    Item item(3, 0);
+    table.insert(&item.node);
 
-    HNode **from = table.lookup(&data.node, are_data_equal);
+    HNode **from = table.lookup(&item.node, are_items_equal);
     assert(from != NULL);
-    assert(*from == &data.node);
+    assert(*from == &item.node);
 }
 
 void test_lookup_node_in_chain() {
     HTable table(8);
-    Data data1 (3, 0);
-    Data data2 (3, 5);
-    table.insert(&data1.node);
-    table.insert(&data2.node);
+    Item item1(3, 0);
+    Item item2(3, 5);
+    table.insert(&item1.node);
+    table.insert(&item2.node);
 
-    HNode **from = table.lookup(&data1.node, are_data_equal);
+    HNode **from = table.lookup(&item1.node, are_items_equal);
     assert(from != NULL);
-    assert(*from == &data1.node);
+    assert(*from == &item1.node);
 }
 
 void test_detach_node_at_start_of_chain() {
     HTable table(8);
-    Data data1 (1, 0);
-    Data data2 (1, 2);
-    table.insert(&data1.node);
-    table.insert(&data2.node);
+    Item item1(1, 0);
+    Item item2(1, 2);
+    table.insert(&item1.node);
+    table.insert(&item2.node);
 
-    HNode **from = table.lookup(&data2.node, are_data_equal);
+    HNode **from = table.lookup(&item2.node, are_items_equal);
     HNode *node = table.detach(from);
     assert(table.num_keys == 1);
-    assert(node == &data2.node);
-    assert(table.table[1] == &data1.node);
-    assert(data1.node.next == NULL);
+    assert(node == &item2.node);
+    assert(table.table[1] == &item1.node);
+    assert(item1.node.next == NULL);
 }
 
 void test_detach_node_in_chain() {
     HTable table(8);
-    Data data1 (6, 2);
-    Data data2 (6, 7);
-    table.insert(&data1.node);
-    table.insert(&data2.node);
+    Item item1(6, 2);
+    Item item2(6, 7);
+    table.insert(&item1.node);
+    table.insert(&item2.node);
 
-    HNode **from = table.lookup(&data1.node, are_data_equal);
+    HNode **from = table.lookup(&item1.node, are_items_equal);
     HNode *node = table.detach(from);
     assert(table.num_keys == 1);
-    assert(node == &data1.node);
-    assert(table.table[6] == &data2.node);
-    assert(data2.node.next == NULL);
+    assert(node == &item1.node);
+    assert(table.table[6] == &item2.node);
+    assert(item2.node.next == NULL);
 }
 
 void test_detach_only_node_in_chain() {
     HTable table(8);
-    Data data (4, 11);
-    table.insert(&data.node);
+    Item item(4, 11);
+    table.insert(&item.node);
 
-    HNode **from = table.lookup(&data.node, are_data_equal);
+    HNode **from = table.lookup(&item.node, are_items_equal);
     HNode *node = table.detach(from);
     assert(table.num_keys == 0);
-    assert(node == &data.node);
+    assert(node == &item.node);
     assert(table.table[4] == NULL);
 }
 
 void test_for_each() {
     HTable table(8);
-    Data data1 (0, 4);
-    Data data2 (6, 2);
-    Data data3 (6, 9);
-    table.insert(&data1.node);
-    table.insert(&data2.node);
-    table.insert(&data3.node);
+    Item item1(0, 4);
+    Item item2(6, 2);
+    Item item3(6, 9);
+    table.insert(&item1.node);
+    table.insert(&item2.node);
+    table.insert(&item3.node);
 
     int multiplier = 2;
     table.for_each(multiply, (void *) &multiplier);
-    assert(data1.val == 4 * multiplier);
-    assert(data2.val == 2 * multiplier);
-    assert(data3.val == 9 * multiplier);
+    assert(item1.val == 4 * multiplier);
+    assert(item2.val == 2 * multiplier);
+    assert(item3.val == 9 * multiplier);
 }
 
 int main() {
