@@ -6,10 +6,6 @@
 #include "../../utils/intrusive_data_structure_utils.hpp"
 #include <vector>
 
-const uint8_t INITIAL_SIZE = HMap::get_initial_size();
-const uint8_t MAX_LOAD_FACTOR = HMap::get_max_load_factor();
-const uint8_t NUM_KEYS_TO_MIGRATE = HMap::get_num_keys_to_migrate();
-
 struct Data {
     HNode node;
     int val;
@@ -36,22 +32,22 @@ bool are_data_equal(HNode *node1, HNode *node2) {
 }
 
 /**
- * Callback which multiples the value of a Data in an HMap by the given arg.
+ * Callback which adds the value of a Data in an HMap to the given arg.
  * 
  * @param node  The HNode contained by Data.
- * @param arg   Void pointer to an integer multiplier.
+ * @param arg   Void pointer to an integer.
  */
-void multiply(HNode *node, void *arg) {
+void add(HNode *node, void *arg) {
     Data *data = container_of(node, Data, node);
-    int multipler = *((int *) arg);
-    data->val *= multipler;
+    int *sum = (int *) arg;
+    *sum += data->val;
 }
 
 /**
  * Checks that a node is in the map's new table.
  * 
  * @param map   Pointer to the map.
- * @param node  Pointer to the node to check for.
+ * @param node  Pointer to the node.
  */
 void check_node_in_new_table(HMap *map, HNode *node) {
     HNode **from = map->get_newer()->lookup(node, are_data_equal);
@@ -60,14 +56,52 @@ void check_node_in_new_table(HMap *map, HNode *node) {
 }
 
 /**
+ * Checks that a node is in the map's old table.
+ * 
+ * @param map   Pointer to the map.
+ * @param node  Pointer to the node.
+ */
+void check_node_in_old_table(HMap *map, HNode *node) {
+    HNode **from = map->get_older()->lookup(node, are_data_equal);
+    assert(from != NULL);
+    assert(*from == node);
+}
+
+/**
  * Checks that a node is not in the map.
  * 
  * @param map   Pointer to the HMap.
- * @param node  Pointer to the node to check for.
+ * @param node  Pointer to the node.
  */
 void check_node_not_in_map(HMap *map, HNode *node) {
     node = map->lookup(node, are_data_equal);
     assert(node == NULL);
+}
+
+/**
+ * Creates a map which is in the middle of rehashing its keys (i.e. some keys in the old table while some are in the new
+ * table).
+ * 
+ * Changes a few properties of the map to make testing easier:
+ * - Sets the max load factor of the map to 1 so that the first resize will happen once there are 8 keys in the map.
+ * - Sets the number of keys the map rehashes to 1 so that it takes multiple operations for all keys to be rehashed.
+ * 
+ * @return  Pointer to a map in the middle of rehashing. Map has 1 key in the new table and 7 in the old table.
+ */
+HMap *create_map_in_the_middle_of_rehashing() {
+    HMap *map = new HMap();
+    map->set_max_load_factor(1);
+    map->set_num_keys_to_rehash(1);
+
+    for (uint32_t i = 0; i < 8; i++) {
+        Data *data = new Data(i, i);
+        map->insert(&data->node);
+    }
+
+    assert(map->get_newer()->num_keys == 1);
+    assert(map->get_older()->num_keys == 7);
+
+    return map;
 }
 
 void test_constructor() {
@@ -92,13 +126,18 @@ void test_insert_triggers_resize() {
 }
 
 void test_insert_in_the_middle_of_rehashing() {
-    // check new node inserted into new table even when old table exists
+    HMap *map = create_map_in_the_middle_of_rehashing();
+
+    // new node should be inserted into the new table even if old one exists
+    Data data(10, -13);
+    map->insert(&data.node);
+    check_node_in_new_table(map, &data.node);
 }
 
 void test_lookup_on_empty_map() {
     HMap map;
-    Data data(7, 2);
-    check_node_not_in_map(&map, &data.node);
+    Data key(7, 2);
+    check_node_not_in_map(&map, &key.node);
 }
 
 void test_lookup_non_existent_node() {
@@ -106,8 +145,8 @@ void test_lookup_non_existent_node() {
     Data data1(7, 2);
     map.insert(&data1.node);
 
-    Data data2(14, 1);
-    check_node_not_in_map(&map, &data2.node);
+    Data key(14, 1);
+    check_node_not_in_map(&map, &key.node);
 }
 
 void test_lookup_node() {
@@ -118,16 +157,25 @@ void test_lookup_node() {
 }
 
 void test_lookup_in_the_middle_of_rehashing() {
-    // look-up a node in old table
-    // look-up a node in new table
+    HMap *map = create_map_in_the_middle_of_rehashing();
+
+    // look-up a node still in the old table
+    Data key1(7, 7);
+    HNode *node = map->lookup(&key1.node, are_data_equal);
+    check_node_in_old_table(map, node);
+
+    // look-up a node that was moved to the new table
+    Data key2(0, 0);
+    node = map->lookup(&key2.node, are_data_equal);
+    check_node_in_new_table(map, node);
 }
 
 void test_remove_on_empty_map() {
     HMap map;
-    Data data(10, 10);
-    HNode *node = map.remove(&data.node, are_data_equal);
-    assert(node == NULL);
+    Data key(10, 10);
+    HNode *node = map.remove(&key.node, are_data_equal);
     assert(map.length() == 0);
+    assert(node == NULL);
 }
 
 void test_remove_non_existent_node() {
@@ -135,10 +183,10 @@ void test_remove_non_existent_node() {
     Data data1(5, 21);
     map.insert(&data1.node);
 
-    Data data2(4, 0);
-    HNode *node = map.remove(&data2.node, are_data_equal);
-    assert(node == NULL);
+    Data key(4, 0);
+    HNode *node = map.remove(&key.node, are_data_equal);
     assert(map.length() == 1);
+    assert(node == NULL);
 }
 
 void test_remove_node() {
@@ -146,14 +194,28 @@ void test_remove_node() {
     Data data(2, 37);
     map.insert(&data.node);
 
-    HNode *node = map.remove(&data.node, are_data_equal);
-    assert(node == &data.node);
+    Data key(2, 37);
+    HNode *node = map.remove(&key.node, are_data_equal);
     assert(map.length() == 0);
+    check_node_not_in_map(&map, node);
 }
 
 void test_remove_in_the_middle_of_rehashing() {
-    // remove node in old table
-    // remove node in new table
+    HMap *map = create_map_in_the_middle_of_rehashing();
+
+    // remove a node still in the old table
+    Data key1(7, 7);
+    HNode *node = map->lookup(&key1.node, are_data_equal);
+    check_node_in_old_table(map, node);
+    map->remove(node, are_data_equal);
+    check_node_not_in_map(map, node);
+
+    // remove a node that was moved to the new table
+    Data key2(0, 0);
+    node = map->lookup(&key2.node, are_data_equal);
+    check_node_in_new_table(map, node);
+    map->remove(node, are_data_equal);
+    check_node_not_in_map(map, node);
 }
 
 void test_for_each() {
@@ -165,19 +227,30 @@ void test_for_each() {
     map.insert(&data2.node);
     map.insert(&data3.node);
 
-    int multiplier = 2;
-    map.for_each(multiply, (void *) &multiplier);
-    assert(data1.val == 4 * multiplier);
-    assert(data2.val == 2 * multiplier);
-    assert(data3.val == 9 * multiplier);
+    int sum = 0;
+    map.for_each(add, (void *) &sum);
+    assert(sum == 4 + 2 + 9);
 }
 
 void test_for_each_in_the_middle_of_rehashing() {
+    HMap *map = create_map_in_the_middle_of_rehashing();
     
+    int sum = 0;
+    map->for_each(add, (void *) &sum);
+    assert(sum == 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7);
 }
 
-void test_perform_operations_until_rehashing_finishes() {
+void test_multi_step_rehash() {
+    HMap *map = create_map_in_the_middle_of_rehashing();
 
+    // perform 7 operations to complete rehash
+    for (uint32_t i = 0; i < 7; i++) {
+        Data data(i, i);
+        map->lookup(&data.node, are_data_equal);
+    }
+
+    assert(map->get_older() == NULL);
+    assert(map->get_newer()->num_keys == 8);
 }
 
 int main() {
@@ -200,7 +273,7 @@ int main() {
     test_for_each();
     test_for_each_in_the_middle_of_rehashing();
 
-    test_perform_operations_until_rehashing_finishes();
+    test_multi_step_rehash();
 
     return 0;
 }

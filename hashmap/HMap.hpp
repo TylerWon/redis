@@ -7,16 +7,14 @@
 /* Dynamic hashtable using progressive rehashing */
 class HMap {
     private:
-        static const uint8_t INITIAL_SIZE = 8;
-        static const uint8_t MAX_LOAD_FACTOR = 1;
-        static const uint8_t NUM_KEYS_TO_MIGRATE = 128;
-
         HTable *newer;
         HTable *older;
         uint64_t migrate_pos; // last slot in older that keys were migrated from during progressive rehashing
+        uint32_t max_load_factor = 8;
+        uint32_t num_keys_to_rehash = 128;
     public: 
         /**
-         * Initializes a HMap with INITIAL_SIZE slots.
+         * Initializes a HMap with 8 slots.
          */
         HMap();
 
@@ -64,11 +62,17 @@ class HMap {
 
         /* Returns the number of keys in the HMap */
         uint32_t length();
+
+        /* Set the max load factor */
+        void set_max_load_factor(uint32_t max_load_factor);
+
+        /* Set the number of keys to rehash */
+        void set_num_keys_to_rehash(uint32_t num_keys_to_rehash);
     private:
         /** 
-         * Migrates a constant number of keys (NUM_KEYS_TO_MIGRATE) from the old hashtable to the new one. 
+         * Rehashes a constant number of keys from the old hashtable to the new one. 
          */
-        void migrate_keys();
+        void rehash_keys();
 
         /**
          * Moves the newer hashtable to older and allocates a bigger hashtable (2x) for newer.
@@ -82,11 +86,5 @@ class HMap {
         HTable *get_older() { return older; }
 
         uint64_t get_migrate_pos() { return migrate_pos; }
-
-        static uint8_t get_initial_size() { return INITIAL_SIZE; }
-
-        static uint8_t get_max_load_factor() { return MAX_LOAD_FACTOR; }
-
-        static uint8_t get_num_keys_to_migrate() { return NUM_KEYS_TO_MIGRATE; }
     #endif
 };

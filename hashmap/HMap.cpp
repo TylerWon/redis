@@ -4,7 +4,7 @@
 #include "HMap.hpp"
 
 HMap::HMap() {
-    newer = new HTable(INITIAL_SIZE);
+    newer = new HTable(8);
     older = NULL;
     migrate_pos = 0;
 }
@@ -12,15 +12,15 @@ HMap::HMap() {
 void HMap::insert(HNode *node) {
     newer->insert(node);
 
-    if (older == NULL && newer->num_keys >= (newer->num_slots * MAX_LOAD_FACTOR)) {
+    if (older == NULL && newer->num_keys >= (newer->num_slots * max_load_factor)) {
         resize();
     }
 
-    migrate_keys();
+    rehash_keys();
 }
 
 HNode *HMap::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
-    migrate_keys();
+    rehash_keys();
 
     HNode **from = newer->lookup(key, eq);
     if (from == NULL && older != NULL) {
@@ -31,7 +31,7 @@ HNode *HMap::lookup(HNode *key, bool (*eq)(HNode *, HNode *)) {
 }
 
 HNode *HMap::remove(HNode *key, bool (*eq)(HNode *, HNode *)) {
-    migrate_keys();
+    rehash_keys();
 
     HNode **from;
     if ((from = newer->lookup(key, eq)) != NULL) {
@@ -56,20 +56,28 @@ uint32_t HMap::length() {
     return older != NULL ? newer->num_keys + older->num_keys : newer->num_keys;
 }
 
-void HMap::migrate_keys() {
+void HMap::set_max_load_factor(uint32_t max_load_factor) {
+    this->max_load_factor = max_load_factor;
+}
+
+void HMap::set_num_keys_to_rehash(uint32_t num_keys_to_rehash) {
+    this->num_keys_to_rehash = num_keys_to_rehash;
+}
+
+void HMap::rehash_keys() {
     if (older == NULL) {
         return;
     }
 
-    uint64_t keys_migrated = 0;
-    while (keys_migrated < NUM_KEYS_TO_MIGRATE && older->num_keys > 0) {
+    uint64_t keys_rehashed = 0;
+    while (keys_rehashed < num_keys_to_rehash && older->num_keys > 0) {
         HNode **from = &older->table[migrate_pos];
         if (*from == NULL) {
             migrate_pos++;
             continue;
         }
         newer->insert(older->detach(from));
-        keys_migrated++;
+        keys_rehashed++;
     }
 
     if (older->num_keys == 0) {
