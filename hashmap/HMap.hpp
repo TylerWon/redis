@@ -7,17 +7,25 @@
 /* Dynamic hashtable using progressive rehashing */
 class HMap {
     private:
-        const uint8_t MAX_LOAD_FACTOR = 8;
-        const uint8_t NUM_KEYS_TO_MIGRATE = 128;
+        static const uint8_t INITIAL_SIZE = 8;
+        static const uint8_t MAX_LOAD_FACTOR = 1;
+        static const uint8_t NUM_KEYS_TO_MIGRATE = 128;
 
         HTable *newer;
         HTable *older;
         uint64_t migrate_pos; // last slot in older that keys were migrated from during progressive rehashing
     public: 
+        /**
+         * Initializes a HMap with INITIAL_SIZE slots.
+         */
         HMap();
 
         /**
          * Inserts the node into the HMap.
+         * 
+         * Doubles HMap size if load factor exceeds MAX_LOAD_FACTOR after insert, but does not rehash all keys 
+         * immediately. Instead, rehashing occurs progressively; a constant number of keys moved from old table to new 
+         * table every time an insert, lookup, or remove is performed until the old table is empty. 
          * 
          * @param node  The node to insert.
          */
@@ -54,16 +62,31 @@ class HMap {
          */
         void for_each(void (*cb)(HNode *, void *), void *cb_arg);
 
-        /* Returns the number of elements in the HMap */
+        /* Returns the number of keys in the HMap */
         uint32_t length();
     private:
         /** 
-         * Migrates a constant number of keys from the old hashtable to the new one. 
+         * Migrates a constant number of keys (NUM_KEYS_TO_MIGRATE) from the old hashtable to the new one. 
          */
         void migrate_keys();
 
         /**
-         * Moves the newer hashtable to older and allocates a bigger hashtable for newer.
+         * Moves the newer hashtable to older and allocates a bigger hashtable (2x) for newer.
          */
         void resize();
+
+    #ifdef TEST_MODE
+    public:      
+        HTable *get_newer() { return newer; }
+
+        HTable *get_older() { return older; }
+
+        uint64_t get_migrate_pos() { return migrate_pos; }
+
+        static uint8_t get_initial_size() { return INITIAL_SIZE; }
+
+        static uint8_t get_max_load_factor() { return MAX_LOAD_FACTOR; }
+
+        static uint8_t get_num_keys_to_migrate() { return NUM_KEYS_TO_MIGRATE; }
+    #endif
 };

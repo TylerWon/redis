@@ -4,7 +4,7 @@
 #include "HMap.hpp"
 
 HMap::HMap() {
-    newer = new HTable(8);
+    newer = new HTable(INITIAL_SIZE);
     older = NULL;
     migrate_pos = 0;
 }
@@ -12,7 +12,7 @@ HMap::HMap() {
 void HMap::insert(HNode *node) {
     newer->insert(node);
 
-    if (older == NULL && newer->num_keys >= newer->num_slots * MAX_LOAD_FACTOR) {
+    if (older == NULL && newer->num_keys >= (newer->num_slots * MAX_LOAD_FACTOR)) {
         resize();
     }
 
