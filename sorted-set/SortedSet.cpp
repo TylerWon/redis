@@ -43,7 +43,7 @@ int32_t compare_pairs(AVLNode *node1, AVLNode *node2) {
     return res != 0 ? res : pair1->len - pair2->len;
 }
 
-bool SortedSet::insert(const char *name, uint32_t len, double score) {
+bool SortedSet::insert(double score, const char *name, uint32_t len) {
     SPair *pair = lookup(name, len);
     if (pair != NULL) {
         update(pair, score);

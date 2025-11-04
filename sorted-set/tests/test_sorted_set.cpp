@@ -5,7 +5,7 @@
 
 void test_insert_pair() {
     SortedSet set;
-    set.insert("tyler", 5, 10);
+    set.insert(10, "tyler", 5);
 
     assert(set.length() == 1);
 
@@ -17,8 +17,8 @@ void test_insert_pair() {
 
 void test_insert_existing_pair() {
     SortedSet set;
-    set.insert("tyler", 5, 10);
-    set.insert("tyler", 5, 20);
+    set.insert(10, "tyler", 5);
+    set.insert(20, "tyler", 5);
 
     assert(set.length() == 1);
 
@@ -37,7 +37,7 @@ void test_lookup_on_empty_set() {
 
 void test_lookup_non_existent_pair() {
     SortedSet set;
-    set.insert("won", 3, 0);
+    set.insert(0, "won", 3);
 
     SPair *pair = set.lookup("tyler", 5);
     assert(pair == NULL);
@@ -45,8 +45,8 @@ void test_lookup_non_existent_pair() {
 
 void test_lookup_pair() {
     SortedSet set;
-    set.insert("tyler", 5, 10);
-    set.insert("won", 3, 0);
+    set.insert(10, "tyler", 5);
+    set.insert(0, "won", 3);
 
     SPair *pair = set.lookup("tyler", 5);
     assert(pair->len == 5);
@@ -56,7 +56,7 @@ void test_lookup_pair() {
 
 void test_remove_non_existent_pair() {
     SortedSet set;
-    set.insert("tyler", 5, 10);
+    set.insert(10, "tyler", 5);
 
     SPair *pair = spair_new("won", 3, 0);
     set.remove(pair);
@@ -71,7 +71,7 @@ void test_remove_non_existent_pair() {
 
 void test_remove_pair() {
     SortedSet set;
-    set.insert("tyler", 5, 10);
+    set.insert(10, "tyler", 5);
 
     SPair *pair = spair_new("tyler", 5, 10);
     set.remove(pair);

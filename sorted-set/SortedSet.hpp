@@ -9,14 +9,14 @@ class SortedSet {
          * Inserts a new (score, name) pair into the SortedSet if it doesn't already exist. Otherwise, updates the 
          * existing pair.
          * 
+         * @param score The score.
          * @param name  Byte array that stores the name.
          * @param len   Length of the name.
-         * @param score The score.
          * 
          * @return  True if the a new pair is inserted.
          *          False if the pair already exists.
          */
-        bool insert(const char *name, uint32_t len, double score);
+        bool insert(double score, const char *name, uint32_t len);
 
         /** 
          * Searches for a pair with the given name in the SortedSet.
