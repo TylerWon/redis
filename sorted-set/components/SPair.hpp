@@ -14,12 +14,19 @@ struct SPair {
 };
 
 /**
- * Helper struct for pair look-ups.
- * 
- * Look-ups done using hash map so don't need tree node.
- * Look-ups done by name so don't need score.
+ * Simplified version of SPair to use for look-ups in the AVLTree.
  */
-struct LookupSPair {
+struct AVLLookupPair {
+    AVLNode node;
+    double score = 0;
+    const char *name = NULL;
+    uint32_t len = 0;
+};
+
+/**
+ * Simplified version of SPair to use for look-ups in the HMap.
+ */
+struct HLookupPair {
     HNode node;
     const char *name = NULL;
     uint32_t len = 0;

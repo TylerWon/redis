@@ -1,8 +1,10 @@
+#include <vector>
+
 #include "./components/SPair.hpp"
 #include "../avl-tree/AVLTree.hpp"
 #include "../hashmap/HMap.hpp"
 
-/* A collection of sorted (score, name) pairs */
+/* A collection of (score, name) pairs ordered from low to high */
 class SortedSet {
     public:
         /**
@@ -30,11 +32,36 @@ class SortedSet {
         SPair *lookup(const char *name, uint32_t len);
 
         /**
+         * Finds all pairs in the SortedSet greater than or equal to the given (score, name) pair. Optionally accepts an 
+         * offset to exclude a certain number of pairs from the beginning of the result.
+         * 
+         * @param score     The score.
+         * @param name      Byte array that stores the name.
+         * @param len       Length of the name.
+         * @param offset    (Optional) Number of pairs to exclude at the beginning of the result.
+         * 
+         * @return  Vector containing pointers to pairs in the SortedSet that are greater than or equal to the given 
+         *          pair.
+         */
+        std::vector<SPair *>find_all_ge(double score, const char *name, uint32_t len, uint64_t offset = 0);
+
+        /**
          * Removes the pair from the SortedSet.
          * 
          * @param pair  Pointer to the pair to remove.
          */
         void remove(SPair *pair);
+
+        /**
+         * Finds the rank (position in sorted order) of the pair with the given name in the SortedSet.
+         * 
+         * @param name  Byte array that stores the name.
+         * @param len   Length of the name.
+         * 
+         * @return  The rank of the pair if found..
+         *          -1 if the pair does not exist.
+         */
+        int64_t rank(const char *name, uint32_t len);
 
         /* Returns the number of pairs in the SortedSet */
         uint32_t length();
@@ -49,4 +76,27 @@ class SortedSet {
          * @param score New score for the pair.
          */
         void update(SPair *pair, double score);
+
+        /**
+         * Finds the first pair in the SortedSet greater than or equal to the given (score, name) pair. 
+         * 
+         * @param score The score.
+         * @param name  Byte array that stores the name.
+         * @param len   Length of the name.
+         * 
+         * @return  Pointer to the pair if found.
+         *          NULL if no such pair exists in the SortedSet.
+         */
+        SPair *find_first_ge(double score, const char *name, uint32_t len);
+
+        /**
+         * Finds the pair located offset positions away from the specified pair in the SortedSet.
+         *
+         * @param pair      Pointer to the starting pair.
+         * @param offset    Number of positions away the offset pair is from the starting pair.
+         *
+         * @return  Pointer to the pair if found.
+         *          NULL if no such pair exists in the SortedSet.
+         */
+        SPair *find_offset(SPair *pair, uint64_t offset);
 };
