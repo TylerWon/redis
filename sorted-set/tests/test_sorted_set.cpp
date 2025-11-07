@@ -54,13 +54,13 @@ void test_lookup_pair() {
     assert(pair->score == 10);
 }
 
-void test_lookup_ge_on_empty_set() {
+void test_find_all_ge_on_empty_set() {
     SortedSet set;
     std::vector<SPair *> results = set.find_all_ge(10, "tyler'", 5);
     assert(results.size() == 0);
 }
 
-void test_lookup_ge_no_results()  {
+void test_find_all_ge_no_pairs_with_higher_score() {
     SortedSet set;
     set.insert(10, "tyler", 5);
     set.insert(0, "won", 3);
@@ -69,7 +69,16 @@ void test_lookup_ge_no_results()  {
     assert(results.size() == 0);
 }
 
-void test_lookup_ge_results() {
+void test_find_all_ge_no_pairs_with_higher_name() {
+    SortedSet set;
+    set.insert(10, "tyler", 5);
+    set.insert(10, "won", 3);
+
+    std::vector<SPair *> results = set.find_all_ge(10, "zed'", 3);
+    assert(results.size() == 0);
+}
+
+void test_find_all_ge_pairs_with_higher_score_found() {
     SortedSet set;
     set.insert(11, "jeff", 4);
     set.insert(10, "tyler", 5);
@@ -83,21 +92,21 @@ void test_lookup_ge_results() {
     assert(strcmp(results[1]->name, "jeff") == 0);
 }
 
-void test_lookup_ge_name_breaks_tie_in_score() {
+void test_find_all_ge_pairs_with_higher_name_found() {
     SortedSet set;
-    set.insert(11, "jeff", 4);
+    set.insert(10, "zed", 3);
     set.insert(10, "tyler", 5);
-    set.insert(0, "won", 3);
+    set.insert(10, "adam", 4);
 
-    std::vector<SPair *> results = set.find_all_ge(10, "adam", 4);
+    std::vector<SPair *> results = set.find_all_ge(10, "mark", 4);
     assert(results.size() == 2);
     assert(results[0]->score == 10);
     assert(strcmp(results[0]->name, "tyler") == 0);
-    assert(results[1]->score == 11);
-    assert(strcmp(results[1]->name, "jeff") == 0);
+    assert(results[1]->score == 10);
+    assert(strcmp(results[1]->name, "zed") == 0);
 }
 
-void test_lookup_ge_pair_in_set() {
+void test_find_all_ge_given_pair_in_set() {
     SortedSet set;
     set.insert(11, "jeff", 4);
     set.insert(10, "tyler", 5);
@@ -111,7 +120,7 @@ void test_lookup_ge_pair_in_set() {
     assert(strcmp(results[1]->name, "jeff") == 0);
 }
 
-void test_lookup_ge_with_offset() {
+void test_find_all_ge_with_offset() {
     SortedSet set;
     set.insert(11, "jeff", 4);
     set.insert(10, "tyler", 5);
@@ -123,7 +132,7 @@ void test_lookup_ge_with_offset() {
     assert(strcmp(results[0]->name, "jeff") == 0);
 }
 
-void test_lookup_ge_offset_skips_all_results() {
+void test_find_all_ge_offset_skips_all_results() {
     SortedSet set;
     set.insert(11, "jeff", 4);
     set.insert(10, "tyler", 5);
@@ -213,13 +222,14 @@ int main() {
     test_lookup_non_existent_pair();
     test_lookup_pair();
 
-    test_lookup_ge_on_empty_set();
-    test_lookup_ge_no_results();
-    test_lookup_ge_results();
-    test_lookup_ge_name_breaks_tie_in_score();
-    test_lookup_ge_pair_in_set();
-    test_lookup_ge_with_offset();
-    test_lookup_ge_offset_skips_all_results();
+    test_find_all_ge_on_empty_set();
+    test_find_all_ge_no_pairs_with_higher_score();
+    test_find_all_ge_no_pairs_with_higher_name();
+    test_find_all_ge_pairs_with_higher_score_found();
+    test_find_all_ge_pairs_with_higher_name_found();
+    test_find_all_ge_given_pair_in_set();
+    test_find_all_ge_with_offset();
+    test_find_all_ge_offset_skips_all_results();
 
     test_remove_non_existent_pair();
     test_remove_pair();
