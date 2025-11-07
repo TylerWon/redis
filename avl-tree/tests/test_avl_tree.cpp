@@ -25,7 +25,7 @@ struct Item {
  *          > 0 if first Item > second Item
  *          0 if the two are equal
  */
-int32_t compare_nodes(AVLNode *node1, AVLNode *node2) {
+int32_t compare_items(AVLNode *node1, AVLNode *node2) {
     Item *item1 = container_of(node1, Item, node);
     Item *item2 = container_of(node2, Item, node);
     return item1->key - item2->key;
@@ -49,17 +49,17 @@ int32_t compare_key_to_node(void *key, AVLNode *node) {
 /**
  * Checks if the nodes in the AVLTree match the expected structure.
  * 
- * @param avl_tree  The AVLTree.
+ * @param tree  The AVLTree.
  * @param expected  Vector containing the nodes expected in the AVLTree. Nodes are in level order.
  */
-void check_tree(AVLTree *avl_tree, std::queue<AVLNode *> expected) {
-    if (avl_tree->root == NULL) {
+void check_tree(AVLTree *tree, std::queue<AVLNode *> expected) {
+    if (tree->root == NULL) {
         assert(expected.empty() == true);
         return;
     }
 
     std::queue<AVLNode *> queue;
-    queue.push(avl_tree->root);
+    queue.push(tree->root);
     while (!queue.empty()) {
         AVLNode *tree_node = queue.front();
         AVLNode *expected_node = expected.front();
@@ -83,240 +83,265 @@ void check_tree(AVLTree *avl_tree, std::queue<AVLNode *> expected) {
 }
 
 void test_insert_into_empty_tree() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
 
     std::queue<AVLNode *> expected({ &twelve.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_smaller_node() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
 
     std::queue<AVLNode *> expected({ &twelve.node, &six.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_bigger_node() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
 
     std::queue<AVLNode *> expected({ &twelve.node, &eighteen.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_then_rebalance_with_right_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item three(3);
-    avl_tree.insert(&three.node, compare_nodes);
+    tree.insert(&three.node, compare_items);
     Item nine(9);
-    avl_tree.insert(&nine.node, compare_nodes);
+    tree.insert(&nine.node, compare_items);
     Item zero(0);
-    avl_tree.insert(&zero.node, compare_nodes);
+    tree.insert(&zero.node, compare_items);
 
     std::queue<AVLNode *> expected({ &six.node, &three.node, &twelve.node, &zero.node, &nine.node, &eighteen.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_then_rebalance_with_left_right_rotation() {
-   AVLTree avl_tree;
+   AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item three(3);
-    avl_tree.insert(&three.node, compare_nodes);
+    tree.insert(&three.node, compare_items);
     Item nine(9);
-    avl_tree.insert(&nine.node, compare_nodes);
+    tree.insert(&nine.node, compare_items);
     Item ten(10);
-    avl_tree.insert(&ten.node, compare_nodes);
+    tree.insert(&ten.node, compare_items);
 
     std::queue<AVLNode *> expected({ &nine.node, &six.node, &twelve.node, &three.node, &ten.node, &eighteen.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_then_rebalance_with_left_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item fourteen(14);
-    avl_tree.insert(&fourteen.node, compare_nodes);
+    tree.insert(&fourteen.node, compare_items);
     Item twenty(20);
-    avl_tree.insert(&twenty.node, compare_nodes);
+    tree.insert(&twenty.node, compare_items);
     Item twenty_five(25);
-    avl_tree.insert(&twenty_five.node, compare_nodes);
+    tree.insert(&twenty_five.node, compare_items);
 
     std::queue<AVLNode *> expected({ &eighteen.node, &twelve.node, &twenty.node, &six.node, &fourteen.node, &twenty_five.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_insert_then_rebalance_with_right_left_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item fourteen(14);
-    avl_tree.insert(&fourteen.node, compare_nodes);
+    tree.insert(&fourteen.node, compare_items);
     Item twenty(20);
-    avl_tree.insert(&twenty.node, compare_nodes);
+    tree.insert(&twenty.node, compare_items);
     Item thirteen(13);
-    avl_tree.insert(&thirteen.node, compare_nodes);
+    tree.insert(&thirteen.node, compare_items);
 
     std::queue<AVLNode *> expected({ &fourteen.node, &twelve.node, &eighteen.node, &six.node, &thirteen.node, &twenty.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
+}
+
+void test_remove_non_existent_node() {
+    AVLTree tree;
+    Item twelve(12);
+    tree.insert(&twelve.node, compare_items);
+    Item six(6);
+    tree.insert(&six.node, compare_items);
+    Item eighteen(18);
+    tree.insert(&eighteen.node, compare_items);
+
+    Item four(4);
+    void *key = (void *) &four.key;
+    AVLNode *node = tree.remove(key, compare_key_to_node);
+
+    assert(node == NULL);
+    std::queue<AVLNode *> expected({ &twelve.node, &six.node, &eighteen.node });
+    check_tree(&tree, expected);
 }
 
 void test_remove_node_with_no_children() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
 
     void *key = (void *) &twelve.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &twelve.node);
     std::queue<AVLNode *> expected;
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_node_with_one_child() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     
     void *key = (void *) &twelve.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &twelve.node);
     std::queue<AVLNode *> expected({ &six.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_node_with_two_children() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
 
     void *key = (void *) &twelve.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &twelve.node);
     std::queue<AVLNode *> expected({ &eighteen.node, &six.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_then_rebalance_with_right_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item three(3);
-    avl_tree.insert(&three.node, compare_nodes);
+    tree.insert(&three.node, compare_items);
     Item nine(9);
-    avl_tree.insert(&nine.node, compare_nodes);
+    tree.insert(&nine.node, compare_items);
 
     void *key = (void *) &eighteen.key;
-    avl_tree.remove(key, compare_key_to_node);
-
+    AVLNode *node = tree.remove(key, compare_key_to_node);
+    
+    assert(node == &eighteen.node);
     std::queue<AVLNode *> expected({ &six.node, &three.node, &twelve.node, &nine.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_then_rebalance_with_left_right_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item three(3);
-    avl_tree.insert(&three.node, compare_nodes);
+    tree.insert(&three.node, compare_items);
     Item nine(9);
-    avl_tree.insert(&nine.node, compare_nodes);
+    tree.insert(&nine.node, compare_items);
     Item sixteen(16);
-    avl_tree.insert(&sixteen.node, compare_nodes);
+    tree.insert(&sixteen.node, compare_items);
     Item ten(10);
-    avl_tree.insert(&ten.node, compare_nodes);
+    tree.insert(&ten.node, compare_items);
 
     void *key = (void *) &sixteen.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &sixteen.node);
     std::queue<AVLNode *> expected({ &nine.node, &six.node, &twelve.node, &three.node, &ten.node, &eighteen.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_then_rebalance_with_left_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item fourteen(14);
-    avl_tree.insert(&fourteen.node, compare_nodes);
+    tree.insert(&fourteen.node, compare_items);
     Item twenty(20);
-    avl_tree.insert(&twenty.node, compare_nodes);
+    tree.insert(&twenty.node, compare_items);
 
     void *key = (void *) &six.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &six.node);
     std::queue<AVLNode *> expected({ &eighteen.node, &twelve.node, &twenty.node, &fourteen.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 void test_remove_then_rebalance_with_right_left_rotation() {
-    AVLTree avl_tree;
+    AVLTree tree;
     Item twelve(12);
-    avl_tree.insert(&twelve.node, compare_nodes);
+    tree.insert(&twelve.node, compare_items);
     Item six(6);
-    avl_tree.insert(&six.node, compare_nodes);
+    tree.insert(&six.node, compare_items);
     Item eighteen(18);
-    avl_tree.insert(&eighteen.node, compare_nodes);
+    tree.insert(&eighteen.node, compare_items);
     Item fourteen(14);
-    avl_tree.insert(&fourteen.node, compare_nodes);
+    tree.insert(&fourteen.node, compare_items);
     Item twenty(20);
-    avl_tree.insert(&twenty.node, compare_nodes);    
+    tree.insert(&twenty.node, compare_items);    
     Item four(4);
-    avl_tree.insert(&four.node, compare_nodes);
+    tree.insert(&four.node, compare_items);
     Item thirteen(13);
-    avl_tree.insert(&thirteen.node, compare_nodes);
+    tree.insert(&thirteen.node, compare_items);
 
     void *key = (void *) &four.key;
-    avl_tree.remove(key, compare_key_to_node);
+    AVLNode *node = tree.remove(key, compare_key_to_node);
 
+    assert(node == &four.node);
     std::queue<AVLNode *> expected({ &fourteen.node, &twelve.node, &eighteen.node, &six.node, &thirteen.node, &twenty.node });
-    check_tree(&avl_tree, expected);
+    check_tree(&tree, expected);
 }
 
 int main() {
@@ -328,6 +353,7 @@ int main() {
     test_insert_then_rebalance_with_left_rotation();
     test_insert_then_rebalance_with_right_left_rotation();
 
+    test_remove_non_existent_node();
     test_remove_node_with_no_children();
     test_remove_node_with_one_child();
     test_remove_node_with_two_children();
