@@ -30,9 +30,9 @@ class HMap {
         void insert(HNode *node);
 
         /** 
-         * Searches for the key in the HMap and returns its node if found.
+         * Searches for a node in the HMap with the given key. 
          * 
-         * @param key   A HNode containing the key to search for.
+         * @param key   A HNode whose container stores the key.
          * @param eq    A function that checks for the equality of two nodes.
          * 
          * @return  A pointer to the node if found.
@@ -41,9 +41,9 @@ class HMap {
         HNode *lookup(HNode *key, bool (*eq)(HNode *, HNode *));
 
         /**
-         * Removes the key in the HMap.
+         * Remove the node in the HMap with the given key. 
          * 
-         * @param key   A HNode containing the key to remove.
+         * @param key   A HNode whose container stores the key.
          * @param eq    A function that checks for the equality of two nodes.
          * 
          * @return  The node that was removed.
