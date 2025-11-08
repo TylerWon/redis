@@ -19,7 +19,7 @@ SERVER = server
 TEST_BIN := $(notdir $(TEST_SRC:.cpp=))
 
 # Rules
-all: $(CLIENT) $(SERVER) $(TEST_BIN)
+all: $(CLIENT) $(SERVER)
 
 $(CLIENT): $(CLIENT_OBJ) $(COMMON_OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $^
