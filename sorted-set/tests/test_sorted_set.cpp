@@ -56,7 +56,7 @@ void test_lookup_pair() {
 
 void test_find_all_ge_on_empty_set() {
     SortedSet set;
-    std::vector<SPair *> results = set.find_all_ge(10, "tyler'", 5);
+    std::vector<SPair *> results = set.find_all_ge(10, "tyler", 5);
     assert(results.size() == 0);
 }
 
@@ -65,7 +65,7 @@ void test_find_all_ge_no_pairs_with_higher_score() {
     set.insert(10, "tyler", 5);
     set.insert(0, "won", 3);
 
-    std::vector<SPair *> results = set.find_all_ge(11, "jeff'", 4);
+    std::vector<SPair *> results = set.find_all_ge(11, "jeff", 4);
     assert(results.size() == 0);
 }
 
@@ -74,7 +74,7 @@ void test_find_all_ge_no_pairs_with_higher_name() {
     set.insert(10, "tyler", 5);
     set.insert(10, "won", 3);
 
-    std::vector<SPair *> results = set.find_all_ge(10, "zed'", 3);
+    std::vector<SPair *> results = set.find_all_ge(10, "zed", 3);
     assert(results.size() == 0);
 }
 

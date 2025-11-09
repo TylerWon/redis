@@ -145,7 +145,7 @@ SPair *SortedSet::find_first_ge(double score, const char *name, uint32_t len) {
     return node != NULL ? container_of(node, SPair, tree_node) : NULL;
 }
 
-SPair *SortedSet::find_offset(SPair *pair, uint64_t offset) {
+SPair *SortedSet::find_offset(SPair *pair, int64_t offset) {
     AVLNode *node = tree.find_offset(&pair->tree_node, offset);
     return node != NULL ? container_of(node, SPair, tree_node) : NULL;
 }

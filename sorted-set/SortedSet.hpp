@@ -58,7 +58,7 @@ class SortedSet {
          * @param name  Byte array that stores the name.
          * @param len   Length of the name.
          * 
-         * @return  The rank of the pair if found..
+         * @return  The rank of the pair if found.
          *          -1 if the pair does not exist.
          */
         int64_t rank(const char *name, uint32_t len);
@@ -98,5 +98,5 @@ class SortedSet {
          * @return  Pointer to the pair if found.
          *          NULL if no such pair exists in the SortedSet.
          */
-        SPair *find_offset(SPair *pair, uint64_t offset);
+        SPair *find_offset(SPair *pair, int64_t offset);
 };
