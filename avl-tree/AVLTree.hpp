@@ -34,14 +34,14 @@ class AVLTree {
         /**
          * Removes the node with the given key from the AVLTree.
          * 
-         * @param key   Void pointer to the key to remove.
-         * @param cmp   Function that compares the key to a node's key. Should return < 0 if key < node, > 0 if key > 
-         *              node, and 0 if the two are equal.
+         * @param key   AVLNode whose container stores the key.
+         * @param cmp   Function that compares two nodes. Should return < 0 if first node < second node, > 0 if first 
+         *              node > second node, and 0 if the two are equal.
          * 
          * @return  Pointer to the node that was removed.
          *          NULL if a node with the key does not exist in the AVLTree.
          */
-        AVLNode *remove(void *key, int32_t (*cmp)(void *, AVLNode *));
+        AVLNode *remove(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *));
 
         /**
          * Finds the first node in the AVLTree with a key greater than or equal to the given key. 

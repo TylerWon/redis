@@ -33,7 +33,7 @@ AVLNode *AVLTree::lookup(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     return node;
 }
 
-AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(void *, AVLNode *)) {
+AVLNode *AVLTree::remove(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     AVLNode *node = root;
     while (node != NULL) {
         int32_t v = cmp(key, node);
