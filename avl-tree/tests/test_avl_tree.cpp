@@ -79,8 +79,8 @@ void clean_up_tree(AVLTree *tree) {
 /**
  * Checks if the nodes in the AVLTree match the expected structure.
  * 
- * @param tree  The AVLTree.
- * @param expected  Vector containing the nodes expected in the AVLTree. Nodes are in level order.
+ * @param tree      The tree.
+ * @param expected  Queue containing the nodes expected in the tree. Nodes should be in level order.
  */
 void check_tree(AVLTree *tree, std::queue<AVLNode *> expected) {
     if (tree->root == NULL) {
@@ -97,16 +97,29 @@ void check_tree(AVLTree *tree, std::queue<AVLNode *> expected) {
         expected.pop();
 
         assert(tree_node == expected_node);
+
+        uint32_t key = container_of(tree_node, Item, node)->key;
+        assert(key == container_of(expected_node, Item, node)->key);
         
         AVLNode *left = tree_node->left;
         AVLNode *right = tree_node->right;
 
+        uint32_t left_h = AVLNode::get_height(left);
+        uint32_t right_h = AVLNode::get_height(right);
+        assert(tree_node->height == 1 + std::max(left_h, right_h));
+
+        uint32_t left_s = AVLNode::get_size(left);
+        uint32_t right_s = AVLNode::get_size(right);
+        assert(tree_node->size == 1 + left_s + right_s);
+
         if (left != NULL) {
             assert(left->parent == tree_node);
+            assert(container_of(left, Item, node)->key <= key);
             queue.push(left);
         }
         if (right != NULL) {
             assert(right->parent == tree_node);
+            assert(container_of(right, Item, node)->key >= key);
             queue.push(right);
         }
     }
