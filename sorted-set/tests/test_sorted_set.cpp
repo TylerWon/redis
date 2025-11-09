@@ -142,6 +142,42 @@ void test_find_all_ge_offset_skips_all_results() {
     assert(results.size() == 0);
 }
 
+void test_find_all_ge_zero_limit() {
+    SortedSet set;
+    set.insert(11, "jeff", 4);
+    set.insert(10, "tyler", 5);
+    set.insert(0, "won", 3);
+
+    std::vector<SPair *> results = set.find_all_ge(0, "adam", 4, 0, 0);
+    assert(results.size() == 0);
+}
+
+void test_find_all_ge_under_limit() {
+    SortedSet set;
+    set.insert(11, "jeff", 4);
+    set.insert(10, "tyler", 5);
+    set.insert(0, "won", 3);
+
+    std::vector<SPair *> results = set.find_all_ge(10, "zed", 3, 0, 2);
+    assert(results.size() == 1);
+    assert(results[0]->score == 11);
+    assert(strcmp(results[0]->name, "jeff") == 0);
+}
+
+void test_find_all_ge_hit_limit() {
+    SortedSet set;
+    set.insert(11, "jeff", 4);
+    set.insert(10, "tyler", 5);
+    set.insert(0, "won", 3);
+
+    std::vector<SPair *> results = set.find_all_ge(0, "adam", 4, 0, 2);
+    assert(results.size() == 2);
+    assert(results[0]->score == 0);
+    assert(strcmp(results[0]->name, "won") == 0);
+    assert(results[1]->score == 10);
+    assert(strcmp(results[1]->name, "tyler") == 0);
+}
+
 void test_remove_non_existent_pair() {
     SortedSet set;
     set.insert(10, "tyler", 5);
@@ -230,6 +266,9 @@ int main() {
     test_find_all_ge_given_pair_in_set();
     test_find_all_ge_with_offset();
     test_find_all_ge_offset_skips_all_results();
+    test_find_all_ge_zero_limit();
+    test_find_all_ge_under_limit();
+    test_find_all_ge_hit_limit();
 
     test_remove_non_existent_pair();
     test_remove_pair();

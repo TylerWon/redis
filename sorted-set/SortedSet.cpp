@@ -84,7 +84,7 @@ SPair *SortedSet::lookup(const char *name, uint32_t len) {
     return map_node != NULL ? container_of(map_node, SPair, map_node) : NULL;
 }
 
-std::vector<SPair *> SortedSet::find_all_ge(double score, const char *name, uint32_t len, uint64_t offset) {
+std::vector<SPair *> SortedSet::find_all_ge(double score, const char *name, uint32_t len, int64_t offset, uint64_t limit) {
     std::vector<SPair *> results;
 
     SPair *pair = find_first_ge(score, name, len);
@@ -93,7 +93,7 @@ std::vector<SPair *> SortedSet::find_all_ge(double score, const char *name, uint
     }
 
     pair = find_offset(pair, offset);
-    while (pair != NULL) {
+    while (pair != NULL && results.size() < limit) {
         results.push_back(pair);
         pair = find_offset(pair, 1);
     }
