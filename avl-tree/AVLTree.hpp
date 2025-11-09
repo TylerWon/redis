@@ -18,18 +18,53 @@ class AVLTree {
          *                  first node > second node, and 0 if the two are equal.
          */
         void insert(AVLNode *new_node, int32_t (*cmp)(AVLNode *, AVLNode *));
+        
+        /** 
+         * Searches for a node in the AVLTree with the given key. 
+         * 
+         * @param key   AVLNode whose container stores the key.
+         * @param cmp   Function that compares two nodes. Should return < 0 if first node < second node, > 0 if first 
+         *              node > second node, and 0 if the two are equal.
+         * 
+         * @return  A pointer to the node if found.
+         *          NULL if the node is not found.
+         */
+        AVLNode *lookup(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *));
 
         /**
          * Removes the node with the given key from the AVLTree.
          * 
          * @param key   Void pointer to the key to remove.
-         * @param cmp   Function that compares a node's key to the key. Should return < 0 if key < node, > 0 if key > 
+         * @param cmp   Function that compares the key to a node's key. Should return < 0 if key < node, > 0 if key > 
          *              node, and 0 if the two are equal.
          * 
          * @return  Pointer to the node that was removed.
          *          NULL if a node with the key does not exist in the AVLTree.
          */
         AVLNode *remove(void *key, int32_t (*cmp)(void *, AVLNode *));
+
+        /**
+         * Finds the first node in the AVLTree with a key greater than or equal to the given key. 
+         * 
+         * @param key   AVLNode whose container stores the key.
+         * @param cmp   Function that compares two nodes. Should return < 0 if first node < second node, > 0 if first 
+         *              node > second node, and 0 if the two are equal.
+         * 
+         * @return  Pointer to the node if found.
+         *          NULL if no such node exists in the tree.
+         */
+        AVLNode *find_first_ge(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *));
+
+        /**
+         * Finds the node located offset positions away from the specified node in its AVLTree.
+         *
+         * @param node      Pointer to the starting node.
+         * @param offset    Number of positions away the new node is from the starting node.
+         *
+         * @return  Pointer to the node if found.
+         *          NULL if no such node exists in the tree.
+         */
+        static AVLNode *find_offset(AVLNode *node, int64_t offset);
 
         /**
          * Removes the node from its AVLTree.
@@ -39,6 +74,15 @@ class AVLTree {
          * @return  Pointer to the root of the AVLTree.
          */
         static AVLNode *remove(AVLNode *node);
+
+        /**
+         * Finds the rank (position in sorted order) of the given node in its AVLTree.
+         * 
+         * @param node  Pointer to the node to rank.
+         * 
+         * @return  The rank of the node.
+         */
+        static uint64_t rank(AVLNode *node);
     private:
         /**
          * Fixes any imbalances starting at the given node up to the root of the AVLTree.

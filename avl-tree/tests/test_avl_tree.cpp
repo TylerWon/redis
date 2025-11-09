@@ -47,6 +47,51 @@ int32_t compare_key_to_node(void *key, AVLNode *node) {
 }
 
 /**
+ * Creates an AVLTree with n nodes. The nodes are contained by Items which range in value from 1 to n.
+ *
+ * @param n Number of nodes to have in the tree.
+ *
+ * @return  Pointer to the tree.
+ */
+AVLTree *create_tree(uint32_t n) {
+    AVLTree *tree = new AVLTree();
+    for (uint32_t i = 1; i <= n; i++) {
+        Item *item = new Item(i);
+        tree->insert(&item->node, compare_items);
+    }
+    return tree;
+}
+
+/**
+ * Cleans-up (deallocates) the nodes in an AVLTree, then the tree itself.
+ *
+ * @param tree  Pointer to the tree to clean-up.
+ */
+void clean_up_tree(AVLTree *tree) {
+    std::queue<AVLNode *> queue;
+    queue.push(tree->root);
+    while (!queue.empty()) {
+        AVLNode *node = queue.front();
+        queue.pop();
+
+        AVLNode *left = node->left;
+        AVLNode *right = node->right;
+
+        if (left != NULL) {
+            queue.push(left);
+        }
+        if (right != NULL) {
+            queue.push(right);
+        }
+
+        Item *item = container_of(node, Item, node);
+        delete item;
+    }
+
+    delete tree;
+}
+
+/**
  * Checks if the nodes in the AVLTree match the expected structure.
  * 
  * @param tree  The AVLTree.
@@ -187,6 +232,138 @@ void test_insert_then_rebalance_with_right_left_rotation() {
 
     std::queue<AVLNode *> expected({ &fourteen.node, &twelve.node, &eighteen.node, &six.node, &thirteen.node, &twenty.node });
     check_tree(&tree, expected);
+}
+
+void test_lookup_empty_tree() {
+    AVLTree tree;
+    Item key(5);
+    AVLNode *node = tree.lookup(&key.node, compare_items);
+    assert(node == NULL);
+}
+
+void test_lookup_non_existent_node() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(45);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    assert(node == NULL);
+
+    clean_up_tree(tree);
+}
+
+void test_lookup_node() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(7);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    assert(container_of(node, Item, node)->key == key.key);
+
+    clean_up_tree(tree);
+}
+
+void test_find_first_ge_empty_tree() {
+    AVLTree tree;
+    Item key(1);
+    AVLNode *node = tree.find_first_ge(&key.node, compare_items);
+    assert(node == NULL);
+}
+
+void test_find_first_ge_no_larger_node() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(50);
+    AVLNode *node = tree->find_first_ge(&key.node, compare_items);
+    assert(node == NULL);
+
+    clean_up_tree(tree);
+}
+
+void test_find_first_ge_equal_node_found() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(18);
+    AVLNode *node = tree->find_first_ge(&key.node, compare_items);
+    AVLNode *expected = tree->lookup(&key.node, compare_items);
+    assert(node == expected);
+
+    clean_up_tree(tree);
+}
+
+void test_find_first_ge_larger_node_found() {
+    AVLTree *tree = create_tree(25);
+    Item *fifty = new Item(50); // dynamically allocate so clean up doesn't fail
+    tree->insert(&fifty->node, compare_items);
+
+    Item key(35);
+    AVLNode *node = tree->find_first_ge(&key.node, compare_items);
+    assert(node == &fifty->node);
+
+    clean_up_tree(tree);
+}
+
+void test_find_offset_zero_offset() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(10);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    AVLNode *offset = tree->find_offset(node, 0);
+
+    assert(offset == node);
+
+    clean_up_tree(tree);
+}
+
+void test_find_offset_positive_offset() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(10);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    AVLNode *offset = tree->find_offset(node, 15);
+
+    key = Item(25);
+    node = tree->lookup(&key.node, compare_items);
+    assert(offset == node);
+
+    clean_up_tree(tree);
+}
+
+void test_find_offset_negative_offset() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(10);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    AVLNode *offset = tree->find_offset(node, -5);
+
+    key = Item(5);
+    node = tree->lookup(&key.node, compare_items);
+    assert(offset == node);
+
+    clean_up_tree(tree);
+}
+
+void test_find_offset_after_largest_node() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(10);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    AVLNode *offset = tree->find_offset(node, 16);
+    
+    assert(offset == NULL);
+
+    clean_up_tree(tree);
+}
+
+
+void test_find_offset_before_smallest_node() {
+    AVLTree *tree = create_tree(25);
+
+    Item key(10);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+    AVLNode *offset = tree->find_offset(node, -11);
+    
+    assert(offset == NULL);
+
+    clean_up_tree(tree);
 }
 
 void test_remove_non_existent_node() {
@@ -344,6 +521,48 @@ void test_remove_then_rebalance_with_right_left_rotation() {
     check_tree(&tree, expected);
 }
 
+void test_rank_only_node_in_tree() {
+    AVLTree tree;
+    Item ten(10);
+    tree.insert(&ten.node, compare_items);
+
+    uint64_t rank = AVLTree::rank(&ten.node);
+    assert(rank == 1);
+}
+
+void test_rank_smallest_node() {
+    AVLTree *tree = create_tree(25);
+    Item key(1);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+
+    uint64_t rank = AVLTree::rank(node);
+    assert(rank == 1);
+
+    clean_up_tree(tree);
+}
+
+void test_rank_middle_node() {
+    AVLTree *tree = create_tree(25);
+    Item key(15);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+
+    uint64_t rank = AVLTree::rank(node);
+    assert(rank == 15);
+
+    clean_up_tree(tree);
+}
+
+void test_rank_largest_node() {
+    AVLTree *tree = create_tree(25);
+    Item key(25);
+    AVLNode *node = tree->lookup(&key.node, compare_items);
+
+    uint64_t rank = AVLTree::rank(node);
+    assert(rank == 25);
+
+    clean_up_tree(tree);
+}
+
 int main() {
     test_insert_into_empty_tree();
     test_insert_smaller_node();
@@ -353,6 +572,21 @@ int main() {
     test_insert_then_rebalance_with_left_rotation();
     test_insert_then_rebalance_with_right_left_rotation();
 
+    test_lookup_empty_tree();
+    test_lookup_non_existent_node();
+    test_lookup_node();
+
+    test_find_first_ge_empty_tree();
+    test_find_first_ge_no_larger_node();
+    test_find_first_ge_equal_node_found();
+    test_find_first_ge_larger_node_found();
+
+    test_find_offset_zero_offset();
+    test_find_offset_positive_offset();
+    test_find_offset_negative_offset();
+    test_find_offset_after_largest_node();
+    test_find_offset_before_smallest_node();
+
     test_remove_non_existent_node();
     test_remove_node_with_no_children();
     test_remove_node_with_one_child();
@@ -361,6 +595,11 @@ int main() {
     test_remove_then_rebalance_with_left_right_rotation();
     test_remove_then_rebalance_with_left_rotation();
     test_remove_then_rebalance_with_right_left_rotation();
+
+    test_rank_only_node_in_tree();
+    test_rank_smallest_node();
+    test_rank_middle_node();
+    test_rank_largest_node();
 
     return 0;
 }

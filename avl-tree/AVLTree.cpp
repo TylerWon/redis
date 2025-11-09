@@ -1,5 +1,7 @@
-#include "AVLTree.hpp"
 #include <cstdio>
+#include <cmath>
+
+#include "AVLTree.hpp"
 
 void AVLTree::insert(AVLNode *new_node, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     AVLNode *parent = NULL;
@@ -13,6 +15,22 @@ void AVLTree::insert(AVLNode *new_node, int32_t (*cmp)(AVLNode *, AVLNode *)) {
     new_node->parent = parent;
 
     root = fix_imbalances(*to_spot);
+}
+
+AVLNode *AVLTree::lookup(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *)) {
+    AVLNode *node = root;
+    while (node != NULL) {
+        int32_t v = cmp(key, node);
+        if (v < 0) {
+            node = node->left;
+        } else if (v > 0) {
+            node = node->right;
+        } else {
+            break;
+        }
+    }
+
+    return node;
 }
 
 AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(void *, AVLNode *)) {
@@ -29,6 +47,53 @@ AVLNode *AVLTree::remove(void *key, int32_t (*cmp)(void *, AVLNode *)) {
         }
     }
 
+    return node;
+}
+
+AVLNode *AVLTree::find_first_ge(AVLNode *key, int32_t (*cmp)(AVLNode *, AVLNode *)) {
+    AVLNode *found = NULL;
+    AVLNode *node = root;
+    while (node != NULL) {
+        int32_t v = cmp(key, node);
+        if (v <= 0) {
+            found = node;
+            node = node->left; // could find node that is larger than key, but smaller than this one in left subtree
+        } else {
+            node = node->right;
+        } 
+    }
+
+    return found;
+}
+
+AVLNode *AVLTree::find_offset(AVLNode *node, int64_t offset) {
+    while (offset != 0) {
+        if (offset > 0 && offset <= AVLNode::get_size(node->right)) {
+            // case 1: offset in right subtree
+            node = node->right;
+            offset -= AVLNode::get_size(node->left) + 1;
+        } else if (offset < 0 && std::abs(offset) <= AVLNode::get_size(node->left)) {
+            // case 2: negative offset and offset in left subtree
+            node = node->left;
+            offset += AVLNode::get_size(node->right) + 1;
+        } else {
+            // case 3: offset in neither left or right subtree, go to parent
+            AVLNode *parent = node->parent;
+            if (parent == NULL) {
+                // reached root without finding offset
+                node = parent;
+                break;
+            }
+
+            if (parent->left == node) {
+                offset -= AVLNode::get_size(node->right) + 1;
+            } else {
+                offset += AVLNode::get_size(node->left) + 1;
+            }
+
+            node = parent;
+        }
+    }
     return node;
 }
 
@@ -67,6 +132,24 @@ AVLNode *AVLTree::remove(AVLNode *node) {
     return root;
 }
 
+uint64_t AVLTree::rank(AVLNode *node) {
+    uint64_t offset_from_root = 0;
+    while (node->parent != NULL) {
+        AVLNode *parent = node->parent;
+
+        if (parent->left == node) {
+            offset_from_root -= AVLNode::get_size(node->right) + 1;
+        } else {
+            offset_from_root += AVLNode::get_size(node->left) + 1;
+        }
+
+        node = parent;
+    }
+
+    uint64_t root_rank = AVLNode::get_size(node->left) + 1;
+    return root_rank + offset_from_root;
+}
+
 AVLNode *AVLTree::fix_imbalances(AVLNode *node) {
     while (true) {
         AVLNode **to_node = &node; // incoming pointer to the node (i.e. address of parent's left or right)
@@ -75,7 +158,7 @@ AVLNode *AVLTree::fix_imbalances(AVLNode *node) {
             to_node = parent->left == node ? &parent->left : &parent->right;
         }
 
-        node->update_height();
+        node->update();
 
         // if re-balancing is required, update to_node because rotations will change the root of the subtree that was
         // originally rooted by node
@@ -120,8 +203,8 @@ AVLNode *AVLTree::rotate_left(AVLNode *root) {
     new_root->parent = root->parent;
     root->parent = new_root;
 
-    root->update_height();
-    new_root->update_height();
+    root->update();
+    new_root->update();
 
     return new_root;
 }
@@ -136,8 +219,8 @@ AVLNode *AVLTree::rotate_right(AVLNode *root) {
     new_root->parent = root->parent;
     root->parent = new_root;
 
-    root->update_height();
-    new_root->update_height();
+    root->update();
+    new_root->update();
 
     return new_root;
 }
