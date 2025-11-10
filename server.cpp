@@ -169,7 +169,7 @@ Response *do_get(const std::string &key) {
 
     Entry *entry = container_of(node, Entry, node);
     if (entry->type != EntryType::STR) {
-        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "expect string value");
+        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a string");
     }
 
     return new StrResponse(entry->str);
@@ -256,6 +256,48 @@ Response *do_keys() {
 }
 
 /**
+ * Adds the (score, name) pair to the sorted set stored at the given key.
+ *
+ * If a pair with the given name already exists in the sorted set, its score is updated.
+ * If key does not exist, a new sorted set with the specified pair is created.
+ * If the key exists but does not hold a sorted set, an error is returned.
+ *
+ * @param key   The key of the sorted set.
+ * @param score The score.
+ * @param name  The name.
+ *
+ * @return  One of the following:
+ *          - IntResponse: the number of new or updated pairs.
+ *          - ErrResponse: the key does not hold a sorted set.
+ */
+Response *do_zadd(const std::string &key, double score, const std::string &name) {
+    LookupEntry lookup_entry;
+    lookup_entry.key = key;
+    lookup_entry.node.hval = str_hash(key);
+    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
+
+    Entry *entry;
+    if (node != NULL) {
+        // entry found
+        entry = container_of(node, Entry, node);
+        if (entry->type != EntryType::SORTED_SET) {
+            return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a sorted set");
+        }
+    } else {
+        // no entry found, create it
+        entry = new Entry(); // sorted set initialized when Entry created
+        entry->key = key;
+        entry->type = EntryType::SORTED_SET;
+        entry->node.hval = str_hash(key);
+        kv_store.insert(&entry->node);
+    }
+
+    entry->zset.insert(score, name.data(), name.length());
+
+    return new IntResponse(1);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -263,6 +305,7 @@ Response *do_keys() {
  * 2. set key value
  * 3. del key
  * 4. keys
+ * 5. zadd key score name
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -282,6 +325,8 @@ Response *execute_command(Request *request) {
         response = do_del(command[1]);
     } else if (command.size() == 1 && command[0] == "keys") {
         response = do_keys();
+    } else if (command.size() == 4 && command[0] == "zadd") {
+        response = do_zadd(command[1], std::stod(command[2]), command[3]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
