@@ -26,18 +26,34 @@
 #include "hashmap/HMap.hpp"
 #include "utils/intrusive_data_structure_utils.hpp"
 #include "utils/hash_utils.hpp"
+#include "sorted-set/SortedSet.hpp"
 
-typedef struct Entry {
+/* Type of Entry */
+enum EntryType {
+    STR,
+    SORTED_SET
+};
+
+/**
+ * Entry in the kv store.
+ * 
+ * The value of the Entry is one of str or zset depending on the type.
+ */
+struct Entry {
+    HNode node;
+    std::string key;    
+    EntryType type;
+    std::string str;
+    SortedSet zset;
+};
+
+/* Simplified version of Entry used for look-ups */
+struct LookupEntry {
     HNode node;
     std::string key;
-    std::string val;
-} Entry;
+};
 
-typedef struct LookupEntry {
-    HNode node;
-    std::string key;
-} LookupEntry;
-
+/* Client connection to the server */
 struct Conn {
     int fd = -1;
     // application's intention, for the event loop
@@ -163,11 +179,12 @@ void do_set(const std::string &key, const std::string &value) {
     HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
     if (node != NULL) {
         Entry *entry = container_of(node, Entry, node);
-        entry->val = value;
+        entry->str = value;
     } else {
         Entry *entry = new Entry();
         entry->key = key;
-        entry->val = value;
+        entry->type = EntryType::STR;
+        entry->str = value;
         entry->node.hval = str_hash(key);
         kv_store.insert(&entry->node);
     }
@@ -223,10 +240,12 @@ std::vector<std::string> do_keys() {
  * Executes the command in the Request.
  * 
  * The following commands are supported:
- * 1. get [key]
- * 2. set [key] [value]
- * 3. del [key]
+ * 1. get key
+ * 2. set key value
+ * 3. del key
  * 4. keys
+ * 
+ * Note: square brackets indicate optional arguments
  * 
  * @param request   Pointer to the Request.
  * 
@@ -239,7 +258,11 @@ Response *execute_command(Request *request) {
     if (command.size() == 2 && command[0] == "get") {
         Entry *entry = do_get(command[1]);
         if (entry != NULL) {
-            response = new StrResponse(entry->val);
+            if (entry->type == EntryType::STR) {
+                response = new StrResponse(entry->str);
+            } else {
+                response = new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "expect string");
+            }
         } else {
             response = new NilResponse();
         }
