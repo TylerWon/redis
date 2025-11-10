@@ -8,7 +8,8 @@ class ErrResponse : public Response {
     public:
         enum ErrorCode {
             ERR_UNKNOWN,
-            ERR_TOO_BIG
+            ERR_TOO_BIG,
+            ERR_BAD_TYPE
         };
 
         ErrResponse(ErrorCode code, std::string msg);

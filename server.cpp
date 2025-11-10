@@ -147,22 +147,32 @@ bool are_entries_equal(HNode *node1, HNode *node2) {
 /**
  * Gets the entry for the provided key in the kv store.
  * 
+ * If the key does not exist the special value nil is returned. 
+ * An error is returned if the value stored at key is not a string.
+ * 
  * @param key   The key to obtain.
  * 
- * @return  The hashtable Entry corresponding to the key if it is found.
- *          NULL if the key is not found.
+ * @return  One of the following:
+ *          - StrResponse: the value of the key.
+ *          - NilResponse: if the key does not exist.
+ *          - ErrResponse: if the value stored at the key is not a string.
  */
-Entry *do_get(const std::string &key) {
+Response *do_get(const std::string &key) {
     LookupEntry lookup_entry;
     lookup_entry.key = key;
     lookup_entry.node.hval = str_hash(key);
     
     HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
     if (node == NULL) {
-        return NULL;
+        return new NilResponse();
     }
 
-    return container_of(node, Entry, node);
+    Entry *entry = container_of(node, Entry, node);
+    if (entry->type != EntryType::STR) {
+        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "expect string value");
+    }
+
+    return new StrResponse(entry->str);
 }
 
 /**
@@ -170,8 +180,10 @@ Entry *do_get(const std::string &key) {
  * 
  * @param key   The key to set.
  * @param value The value for the key.
+ * 
+ * @return  StrResponse ("OK"): the key was set.
  */
-void do_set(const std::string &key, const std::string &value) {
+Response *do_set(const std::string &key, const std::string &value) {
     LookupEntry lookup_entry;
     lookup_entry.key = key;
     lookup_entry.node.hval = str_hash(key);
@@ -188,6 +200,8 @@ void do_set(const std::string &key, const std::string &value) {
         entry->node.hval = str_hash(key);
         kv_store.insert(&entry->node);
     }
+
+    return new StrResponse("OK");
 }
 
 /**
@@ -195,10 +209,9 @@ void do_set(const std::string &key, const std::string &value) {
  * 
  * @param key   The key to delete.
  * 
- * @return  1 if the key is deleted.
- *          0 if the key does not exist in the kv store.
+ * @return  IntResponse: the number of keys removed.
  */
-uint8_t do_del(const std::string &key) {
+Response *do_del(const std::string &key) {
     LookupEntry lookup_entry;
     lookup_entry.key = key;
     lookup_entry.node.hval = str_hash(key);
@@ -206,10 +219,10 @@ uint8_t do_del(const std::string &key) {
     HNode *node = kv_store.remove(&lookup_entry.node, are_entries_equal);
     if (node != NULL) {
         delete container_of(node, Entry, node);
-        return 1;
+        return new IntResponse(1);
     }
 
-    return 0;
+    return new IntResponse(0);
 }
 
 /**
@@ -228,12 +241,18 @@ void get_key(HNode *node, void *arg) {
 /**
  * Gets all keys in the kv store.
  * 
- * @returns Vector containing the keys.
+ * @return ArrResponse: a list of keys.
  */
-std::vector<std::string> do_keys() {
+Response *do_keys() {
     std::vector<std::string> keys;
     kv_store.for_each(get_key, (void *) &keys);
-    return keys;
+
+    std::vector<Response *> elements;
+    for (const std::string &key : keys) {
+        elements.push_back(new StrResponse(key));
+    }
+
+    return new ArrResponse(elements);
 }
 
 /**
@@ -256,29 +275,13 @@ Response *execute_command(Request *request) {
     std::vector<std::string> command = request->get_cmd();
 
     if (command.size() == 2 && command[0] == "get") {
-        Entry *entry = do_get(command[1]);
-        if (entry != NULL) {
-            if (entry->type == EntryType::STR) {
-                response = new StrResponse(entry->str);
-            } else {
-                response = new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "expect string");
-            }
-        } else {
-            response = new NilResponse();
-        }
+        response = do_get(command[1]);
     } else if (command.size() == 3 && command[0] == "set") {
-        do_set(command[1], command[2]);
-        response = new StrResponse("OK");
+        response = do_set(command[1], command[2]);
     } else if (command.size() == 2 && command[0] == "del") {
-        uint8_t result = do_del(command[1]);
-        response = new IntResponse(result);
+        response = do_del(command[1]);
     } else if (command.size() == 1 && command[0] == "keys") {
-        std::vector<std::string> keys = do_keys();
-        std::vector<Response *> elements;
-        for (const std::string &key : keys) {
-            elements.push_back(new StrResponse(key));
-        }
-        response = new ArrResponse(elements);
+        response = do_keys();
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
