@@ -111,7 +111,7 @@ std::vector<SPair *> SortedSet::find_all_ge(double score, const char *name, uint
     }
 
     pair = find_offset(pair, offset);
-    while (pair != NULL && results.size() < limit) {
+    while (pair != NULL && (limit == 0 || results.size() < limit)) {
         results.push_back(pair);
         pair = find_offset(pair, 1);
     }

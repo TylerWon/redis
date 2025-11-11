@@ -142,16 +142,6 @@ void test_find_all_ge_offset_skips_all_results() {
     assert(results.size() == 0);
 }
 
-void test_find_all_ge_zero_limit() {
-    SortedSet set;
-    set.insert(11, "jeff", 4);
-    set.insert(10, "tyler", 5);
-    set.insert(0, "won", 3);
-
-    std::vector<SPair *> results = set.find_all_ge(0, "adam", 4, 0, 0);
-    assert(results.size() == 0);
-}
-
 void test_find_all_ge_under_limit() {
     SortedSet set;
     set.insert(11, "jeff", 4);
@@ -259,7 +249,6 @@ int main() {
     test_find_all_ge_given_pair_in_set();
     test_find_all_ge_with_offset();
     test_find_all_ge_offset_skips_all_results();
-    test_find_all_ge_zero_limit();
     test_find_all_ge_under_limit();
     test_find_all_ge_hit_limit();
 

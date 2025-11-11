@@ -40,12 +40,12 @@ class SortedSet {
          * @param name      Byte array that stores the name.
          * @param len       Length of the name.
          * @param offset    (Optional) Number of pairs to exclude at the beginning of the result. Default is 0.
-         * @param limit     (Optional) Maximum number of pairs to return. Default is 100.
+         * @param limit     (Optional) Maximum number of pairs to return. Default is 0 (no limit).
          * 
          * @return  Vector containing pointers to pairs in the SortedSet that are greater than or equal to the given 
          *          pair.
          */
-        std::vector<SPair *>find_all_ge(double score, const char *name, uint32_t len, int64_t offset = 0, uint64_t limit = 100);
+        std::vector<SPair *>find_all_ge(double score, const char *name, uint32_t len, int64_t offset = 0, uint64_t limit = 0);
 
         /**
          * Removes the pair with the given name from the SortedSet.
