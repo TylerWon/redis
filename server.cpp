@@ -256,15 +256,15 @@ Response *do_keys() {
 }
 
 /**
- * Adds the (score, name) pair to the sorted set stored at the given key.
+ * Adds a (score, name) pair to the sorted set stored at the given key.
  *
  * If a pair with the given name already exists in the sorted set, its score is updated.
  * If key does not exist, a new sorted set with the specified pair is created.
  * If the key exists but does not hold a sorted set, an error is returned.
  *
  * @param key   The key of the sorted set.
- * @param score The score.
- * @param name  The name.
+ * @param score The pair's score.
+ * @param name  The pair's name.
  *
  * @return  One of the following:
  *          - IntResponse: the number of new or updated pairs.
@@ -298,6 +298,35 @@ Response *do_zadd(const std::string &key, double score, const std::string &name)
 }
 
 /**
+ * Gets the score of the given name in the sorted set stored at the given key.
+ * 
+ * @param key   The key of the sorted set.
+ * @param name  The name of the score to get.
+ * 
+ * @return  One of the following:
+ *          - StrResponse: the score of the name.
+ *          - NilResponse: if name does not exist in the sorted set, or the key does not exist.
+ */
+Response *do_zscore(const std::string &key, const std::string &name) {
+    LookupEntry lookup_entry;
+    lookup_entry.key = key;
+    lookup_entry.node.hval = str_hash(key);
+    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
+
+    if (node != NULL) {
+        Entry *entry = container_of(node, Entry, node);
+        if (entry->type == EntryType::SORTED_SET) {
+            SPair *pair = entry->zset.lookup(name.data(), name.length());
+            if (pair != NULL) {
+                return new StrResponse(std::to_string(pair->score));
+            }
+        }
+    }
+
+    return new NilResponse();
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -306,6 +335,7 @@ Response *do_zadd(const std::string &key, double score, const std::string &name)
  * 3. del key
  * 4. keys
  * 5. zadd key score name
+ * 6. zscore key name
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -327,6 +357,8 @@ Response *execute_command(Request *request) {
         response = do_keys();
     } else if (command.size() == 4 && command[0] == "zadd") {
         response = do_zadd(command[1], std::stod(command[2]), command[3]);
+    } else if (command.size() == 3 && command[0] == "zscore") {
+        response = do_zscore(command[1], command[2]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
