@@ -320,6 +320,32 @@ Response *do_zscore(const std::string &key, const std::string &name) {
 }
 
 /**
+ * Removes the pair with the given name in the sorted set stored at key.
+ * 
+ * If the key exists but does not hold a sorted set, an error is returned.
+ * 
+ * @param key   The key of the sorted set.
+ * @param name  The name of the pair to remove.
+ * 
+ * @return  One of the following:
+ *          - IntResponse: the number of pairs removed from the sorted set.
+ *          - ErrResponse: the key does not hold a sorted set.
+ */
+Response *do_zrem(const std::string &key, const std::string &name) {
+    Entry *entry = lookup_entry(key);
+
+    if (entry == NULL) {
+        return new IntResponse(0);
+    } else if (entry != NULL && entry->type != EntryType::SORTED_SET) {
+        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a sorted set");
+    }
+
+    bool success = entry->zset.remove(name.data(), name.length());
+
+    return success ? new IntResponse(1) : new IntResponse(0);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -329,6 +355,7 @@ Response *do_zscore(const std::string &key, const std::string &name) {
  * 4. keys
  * 5. zadd key score name
  * 6. zscore key name
+ * 7. zrem key name
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -352,6 +379,8 @@ Response *execute_command(Request *request) {
         response = do_zadd(command[1], std::stod(command[2]), command[3]);
     } else if (command.size() == 3 && command[0] == "zscore") {
         response = do_zscore(command[1], command[2]);
+    } else if (command.size() == 3 && command[0] == "zrem") {
+        response = do_zrem(command[1], command[2]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
