@@ -346,6 +346,40 @@ Response *do_zrem(const std::string &key, const std::string &name) {
 }
 
 /**
+ * Finds all pairs in the sorted set stored at key greater than or equal to the given (score, name) pair.
+ * 
+ * If the key exists but does not hold a sorted set, an error is returned.
+ * 
+ * @param key       The key of the sorted set.
+ * @param score     The pair's score.
+ * @param name      The pair's name.
+ * @param offset    The number of pairs to exclude from the beginning of the result.
+ * @param limit     The maximum number of pairs to return.
+ * 
+ * @return  One of the following:
+ *          - ArrResponse: the pairs greater than or equal to the given pair.
+ *          - ErrResponse: the key does not hold a sorted set.
+ */
+Response *do_zquery(const std::string &key, double score, const std::string &name, uint64_t offset, uint64_t limit) {
+    Entry *entry = lookup_entry(key);
+
+    if (entry == NULL) {
+        return new ArrResponse(std::vector<Response *>());
+    } else if (entry != NULL && entry->type != EntryType::SORTED_SET) {
+        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a sorted set");
+    }
+
+    std::vector<SPair *> pairs = entry->zset.find_all_ge(score, name.data(), name.length(), offset, limit);
+    std::vector<Response *> elements;
+    for (const SPair *pair : pairs) {
+        Response *element = new StrResponse(std::format("({}, {})", pair->score, std::string(pair->name, pair->len))); 
+        elements.push_back(element);
+    }
+
+    return new ArrResponse(elements);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -356,6 +390,7 @@ Response *do_zrem(const std::string &key, const std::string &name) {
  * 5. zadd key score name
  * 6. zscore key name
  * 7. zrem key name
+ * 8. zquery key score name offset limit
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -381,6 +416,8 @@ Response *execute_command(Request *request) {
         response = do_zscore(command[1], command[2]);
     } else if (command.size() == 3 && command[0] == "zrem") {
         response = do_zrem(command[1], command[2]);
+    } else if (command.size() == 6 && command[0] == "zquery") {
+        response = do_zquery(command[1], std::stod(command[2]), command[3], std::stol(command[4]), std::stoul(command[5]));
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
