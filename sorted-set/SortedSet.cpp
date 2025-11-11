@@ -24,6 +24,24 @@ bool is_lookup_pair_equal_to_pair(HNode *node1, HNode *node2) {
 }
 
 /**
+ * Callback which checks if two SPairs in an HMap are equal.
+ * 
+ * @param node1 The HNode contained by the first SPair.
+ * @param node2 The HNode contained by the second SPair.
+ * 
+ * @return  True if the pairs are equal.
+ *          False if not. 
+ */
+bool are_pairs_equal(HNode *node1, HNode *node2) {
+    SPair *pair1 = container_of(node1, SPair, map_node);
+    SPair *pair2 = container_of(node2, SPair, map_node);
+    if (pair1->len != pair2->len) {
+        return false;
+    }
+    return 0 == memcmp(pair1->name, pair2->name, pair1->len);
+}
+
+/**
  * Callback which compares two SPairs in an AVLTree.
  * 
  * @param node1 The AVLNode contained by the first pair.
@@ -101,17 +119,17 @@ std::vector<SPair *> SortedSet::find_all_ge(double score, const char *name, uint
     return results;
 }
 
-void SortedSet::remove(SPair *pair) {
-    HLookupPair lookup_pair;
-    lookup_pair.node.hval = pair->map_node.hval;
-    lookup_pair.name = pair->name;
-    lookup_pair.len = pair->len;
-    HNode *map_node = map.remove(&lookup_pair.node, is_lookup_pair_equal_to_pair);
-    if (map_node == NULL) {
-        return;
+bool SortedSet::remove(const char *name, uint32_t len) {
+    SPair *pair = lookup(name, len);
+    if (pair == NULL) {
+        return false;
     }
-    tree.remove(&pair->tree_node);
+
+    map.remove(&pair->map_node, are_pairs_equal);
+    tree.root = tree.remove(&pair->tree_node);
     spair_del(pair);
+
+    return true;
 }
 
 int64_t SortedSet::rank(const char *name, uint32_t len) {

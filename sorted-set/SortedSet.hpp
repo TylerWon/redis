@@ -48,11 +48,15 @@ class SortedSet {
         std::vector<SPair *>find_all_ge(double score, const char *name, uint32_t len, int64_t offset = 0, uint64_t limit = 100);
 
         /**
-         * Removes the pair from the SortedSet.
+         * Removes the pair with the given name from the SortedSet.
          * 
-         * @param pair  Pointer to the pair to remove.
+         * @param name  Byte array that stores the name.
+         * @param len   Length of the name.
+         * 
+         * @return  True if the pair is removed.
+         *          False if the pair does not exist.
          */
-        void remove(SPair *pair);
+        bool remove(const char *name, uint32_t len);
 
         /**
          * Finds the rank (position in sorted order) of the pair with the given name in the SortedSet.

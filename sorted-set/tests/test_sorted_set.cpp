@@ -182,27 +182,20 @@ void test_remove_non_existent_pair() {
     SortedSet set;
     set.insert(10, "tyler", 5);
 
-    SPair *pair = spair_new("won", 3, 0);
-    set.remove(pair);
+    bool result = set.remove("won", 3);
 
+    assert(result == false);
     assert(set.length() == 1);
-
-    pair = set.lookup("tyler", 5);
-    assert(pair->len == 5);
-    assert(strcmp(pair->name, "tyler") == 0);
-    assert(pair->score == 10);
 }
 
 void test_remove_pair() {
     SortedSet set;
     set.insert(10, "tyler", 5);
 
-    SPair *pair = spair_new("tyler", 5, 10);
-    set.remove(pair);
+    bool result = set.remove("tyler", 5);
 
-    pair = set.lookup("tyler", 5);
+    assert(result == true);
     assert(set.length() == 0);
-    assert(pair == NULL);
 }
 
 void test_rank_on_empty_set() {
