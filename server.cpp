@@ -145,6 +145,22 @@ bool are_entries_equal(HNode *node1, HNode *node2) {
 }
 
 /**
+ * Searches for the Entry with the given key in the kv store.
+ * 
+ * @param key   The key of the entry to look for.
+ * 
+ * @return  Pointer to the Entry if found.
+ *          NULL otherwise.
+ */
+Entry *lookup_entry(const std::string &key) {
+    LookupEntry lookup_entry;
+    lookup_entry.key = key;
+    lookup_entry.node.hval = str_hash(key);
+    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
+    return node != NULL ? container_of(node, Entry, node) : NULL;
+}
+
+/**
  * Gets the entry for the provided key in the kv store.
  * 
  * If the key does not exist the special value nil is returned. 
@@ -158,17 +174,11 @@ bool are_entries_equal(HNode *node1, HNode *node2) {
  *          - ErrResponse: if the value stored at the key is not a string.
  */
 Response *do_get(const std::string &key) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
-    
-    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
-    if (node == NULL) {
-        return new NilResponse();
-    }
+    Entry *entry = lookup_entry(key);
 
-    Entry *entry = container_of(node, Entry, node);
-    if (entry->type != EntryType::STR) {
+    if (entry == NULL) {
+        return new NilResponse();
+    } else if (entry->type != EntryType::STR) {
         return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a string");
     }
 
@@ -176,7 +186,9 @@ Response *do_get(const std::string &key) {
 }
 
 /**
- * Sets the value of the provided key in the kv store. If key already exists, updates its value.
+ * Sets the value of the provided key in the kv store. 
+ * 
+ * If key already exists, updates its value.
  * 
  * @param key   The key to set.
  * @param value The value for the key.
@@ -184,16 +196,12 @@ Response *do_get(const std::string &key) {
  * @return  StrResponse ("OK"): the key was set.
  */
 Response *do_set(const std::string &key, const std::string &value) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
+    Entry *entry = lookup_entry(key);
 
-    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
-    if (node != NULL) {
-        Entry *entry = container_of(node, Entry, node);
+    if (entry != NULL) {
         entry->str = value;
     } else {
-        Entry *entry = new Entry();
+        entry = new Entry();
         entry->key = key;
         entry->type = EntryType::STR;
         entry->str = value;
@@ -215,8 +223,8 @@ Response *do_del(const std::string &key) {
     LookupEntry lookup_entry;
     lookup_entry.key = key;
     lookup_entry.node.hval = str_hash(key);
-    
     HNode *node = kv_store.remove(&lookup_entry.node, are_entries_equal);
+    
     if (node != NULL) {
         delete container_of(node, Entry, node);
         return new IntResponse(1);
@@ -271,25 +279,16 @@ Response *do_keys() {
  *          - ErrResponse: the key does not hold a sorted set.
  */
 Response *do_zadd(const std::string &key, double score, const std::string &name) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
-    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
+    Entry *entry = lookup_entry(key);
 
-    Entry *entry;
-    if (node != NULL) {
-        // entry found
-        entry = container_of(node, Entry, node);
-        if (entry->type != EntryType::SORTED_SET) {
-            return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a sorted set");
-        }
-    } else {
-        // no entry found, create it
+    if (entry == NULL) {
         entry = new Entry(); // sorted set initialized when Entry created
         entry->key = key;
         entry->type = EntryType::SORTED_SET;
         entry->node.hval = str_hash(key);
         kv_store.insert(&entry->node);
+    } else if (entry != NULL && entry->type != EntryType::SORTED_SET) {
+        return new ErrResponse(ErrResponse::ErrorCode::ERR_BAD_TYPE, "value is not a sorted set");
     }
 
     entry->zset.insert(score, name.data(), name.length());
@@ -298,7 +297,7 @@ Response *do_zadd(const std::string &key, double score, const std::string &name)
 }
 
 /**
- * Gets the score of the given name in the sorted set stored at the given key.
+ * Gets the score of the given name in the sorted set stored at key.
  * 
  * @param key   The key of the sorted set.
  * @param name  The name of the score to get.
@@ -308,18 +307,12 @@ Response *do_zadd(const std::string &key, double score, const std::string &name)
  *          - NilResponse: if name does not exist in the sorted set, or the key does not exist.
  */
 Response *do_zscore(const std::string &key, const std::string &name) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
-    HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
+    Entry *entry = lookup_entry(key);
 
-    if (node != NULL) {
-        Entry *entry = container_of(node, Entry, node);
-        if (entry->type == EntryType::SORTED_SET) {
-            SPair *pair = entry->zset.lookup(name.data(), name.length());
-            if (pair != NULL) {
-                return new StrResponse(std::to_string(pair->score));
-            }
+    if (entry != NULL && entry->type == EntryType::SORTED_SET) {
+        SPair *pair = entry->zset.lookup(name.data(), name.length());
+        if (pair != NULL) {
+            return new StrResponse(std::to_string(pair->score));
         }
     }
 
