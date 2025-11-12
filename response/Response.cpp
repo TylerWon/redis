@@ -4,6 +4,7 @@
 #include "types/ErrResponse.hpp"
 #include "types/IntResponse.hpp"
 #include "types/ArrResponse.hpp"
+#include "types/DblResponse.hpp"
 #include "../utils/buf_utils.hpp"
 
 Response::MarshalStatus Response::marshal(Buffer &buf) {
@@ -43,7 +44,9 @@ std::pair<std::optional<Response *>, Response::UnmarshalStatus> Response::unmars
         case ResponseTag::TAG_INT:
             return std::make_pair(IntResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         case ResponseTag::TAG_ARR:
-            return std::make_pair(ArrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
+            return std::make_pair(ArrResponse::deserialize(buf), UnmarshalStatus::SUCCESS);        
+        case ResponseTag::TAG_DBL:
+            return std::make_pair(DblResponse::deserialize(buf), UnmarshalStatus::SUCCESS);
         default:
             return std::make_pair(std::nullopt, UnmarshalStatus::INVALID_RES);
     }

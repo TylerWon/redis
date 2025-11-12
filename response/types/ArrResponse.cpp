@@ -5,6 +5,7 @@
 #include "StrResponse.hpp"
 #include "ErrResponse.hpp"
 #include "IntResponse.hpp"
+#include "DblResponse.hpp"
 #include "../../utils/buf_utils.hpp"
 #include "../../utils/log.hpp"
 
@@ -44,7 +45,10 @@ ArrResponse* ArrResponse::deserialize(const char *buf) {
                 break;
             case ResponseTag::TAG_ARR:
                 element = ArrResponse::deserialize(buf);
-                break;        
+                break;       
+            case ResponseTag::TAG_DBL:
+                element = DblResponse::deserialize(buf);
+                break;     
             default:
                 fatal("invalid element type at position %d in ArrResponse", i);    
         }

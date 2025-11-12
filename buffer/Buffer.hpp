@@ -29,6 +29,9 @@ class Buffer {
         /* Appends a int64_t to the Buffer */
         void append_int64(int64_t data);
 
+        /* Appends a double to the Buffer */
+        void append_dbl(double data);
+
         /**
          * Removes n bytes from the front of the Buffer.
          * 

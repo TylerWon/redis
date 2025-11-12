@@ -19,6 +19,11 @@ void read_int64(int64_t *dest, const char **src) {
     *src += 8;
 }
 
+void read_dbl(double *dest, const char **src) {
+    memcpy(dest, *src, 8);
+    *src += 8;
+}
+
 void read_str(std::string &dest, uint32_t str_len, const char **src) {
     dest.assign(*src, *src + str_len);
     *src += str_len;

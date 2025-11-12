@@ -17,7 +17,8 @@ class Response {
             TAG_ERR,
             TAG_STR,
             TAG_INT,
-            TAG_ARR
+            TAG_ARR,
+            TAG_DBL
         };
     public:
         static const uint8_t HEADER_SIZE = 4;

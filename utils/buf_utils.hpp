@@ -5,7 +5,7 @@
 /**
  * Reads a uint8_t from the src buffer, storing it in dest. Moves the buffer pointer by 1 after.
  * 
- * @param dest  Pointer a uint8_t where the result will be stored.
+ * @param dest  Pointer to a uint8_t where the result will be stored.
  * @param src   Double pointer to a char buffer where the uint8_t will be read from.
  */
 void read_uint8(uint8_t *dest, const char **src);
@@ -13,7 +13,7 @@ void read_uint8(uint8_t *dest, const char **src);
 /**
  * Reads a uint32_t from the src buffer, storing it in dest. Moves the buffer pointer by 4 after.
  * 
- * @param dest  Pointer a uint32_t where the result will be stored.
+ * @param dest  Pointer to a uint32_t where the result will be stored.
  * @param src   Double pointer to a char buffer where the uint32_t will be read from.
  */
 void read_uint32(uint32_t *dest, const char **src);
@@ -25,6 +25,14 @@ void read_uint32(uint32_t *dest, const char **src);
  * @param src   Double pointer to a char buffer where the int64_t will be read from.
  */
 void read_int64(int64_t *dest, const char **src);
+
+/**
+ * Reads a double from the src buffer, storing it in dest. Moves the buffer pointer by 8 after.
+ * 
+ * @param dest  Pointer to a double where the result will be stored.
+ * @param src   Double pointer to a char buffer where the double will be read from.
+ */
+void read_dbl(double *dest, const char **src);
 
 /**
  * Reads a string of length str_len from the src buffer, storing it in dest. Moves the buffer pointer by str_len after.
