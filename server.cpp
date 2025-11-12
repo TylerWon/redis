@@ -380,6 +380,33 @@ Response *do_zquery(const std::string &key, double score, const std::string &nam
 }
 
 /**
+ * Gets the rank (position in sorted order) of the pair with name in the sorted set stored at key.
+ * 
+ * The rank is 0-based, so the lowest pair is rank 0.
+ * 
+ * @param key   The key of the sorted set.
+ * @param name  The name of the pair to rank.
+ * 
+ * @return  One of the following:
+ *          - NilResponse: if the key does not exist or the pair does not exist in the sorted set.
+ *          - IntResponse: the rank of the pair.
+ */
+Response *do_zrank(const std::string &key, const std::string &name) {
+    Entry *entry = lookup_entry(key);
+    
+    if (entry == NULL || entry->type != EntryType::SORTED_SET) {
+        return new NilResponse();
+    }
+
+    int64_t rank = entry->zset.rank(name.data(), name.length());
+    if (rank < 0) {
+        return new NilResponse();
+    }
+
+    return new IntResponse(rank);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -391,6 +418,7 @@ Response *do_zquery(const std::string &key, double score, const std::string &nam
  * 6. zscore key name
  * 7. zrem key name
  * 8. zquery key score name offset limit
+ * 9. zrank key name
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -418,6 +446,8 @@ Response *execute_command(Request *request) {
         response = do_zrem(command[1], command[2]);
     } else if (command.size() == 6 && command[0] == "zquery") {
         response = do_zquery(command[1], std::stod(command[2]), command[3], std::stol(command[4]), std::stoul(command[5]));
+    } else if (command.size() == 3 && command[0] == "zrank") {
+        response = do_zrank(command[1], command[2]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
