@@ -26,6 +26,9 @@ class Buffer {
         /* Appends a uint32_t to the Buffer */
         void append_uint32(uint32_t data);
 
+        /* Appends a int64_t to the Buffer */
+        void append_int64(int64_t data);
+
         /**
          * Removes n bytes from the front of the Buffer.
          * 

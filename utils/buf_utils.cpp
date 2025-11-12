@@ -14,17 +14,12 @@ void read_uint32(uint32_t *dest, const char **src) {
     *src += 4;
 }
 
+void read_int64(int64_t *dest, const char **src) {
+    memcpy(dest, *src, 8);
+    *src += 8;
+}
+
 void read_str(std::string &dest, uint32_t str_len, const char **src) {
     dest.assign(*src, *src + str_len);
     *src += str_len;
-}
-
-void write_uint32(char **dest, uint32_t src) {
-    memcpy(*dest, &src, 4);
-    *dest += 4;
-}
-
-void write_str(char **dest, const std::string &src) {
-    memcpy(*dest, src.data(), src.length());
-    *dest += src.length();
 }

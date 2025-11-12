@@ -5,16 +5,16 @@
 /* An integer response */
 class IntResponse : public Response {
     private:
-        const uint8_t NUM_SIZE = 4;
+        const uint8_t NUM_SIZE = 8;
 
-        uint32_t num;
+        int64_t num;
     public:
-        IntResponse(uint32_t num) : num(num) {};
+        IntResponse(int64_t num) : num(num) {};
 
         /**
          * Serialized structure:
          * +----------+--------------+
-         * | tag (1B) | integer (4B) |
+         * | tag (1B) | integer (8B) |
          * +----------+--------------+
          */
         void serialize(Buffer &buf) override;
@@ -33,5 +33,5 @@ class IntResponse : public Response {
         std::string to_string() override;
 
         /* Returns the integer */
-        uint32_t get_int();
+        int64_t get_int();
 };

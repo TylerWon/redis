@@ -46,6 +46,10 @@ void Buffer::append_uint32(uint32_t data) {
     append((char *) &data, 4);
 }
 
+void Buffer::append_int64(int64_t data) {
+    append((char *) &data, 8);
+}
+
 void Buffer::consume(uint32_t n) {
     if (data_start == data_end) {
         log("nothing to remove");
