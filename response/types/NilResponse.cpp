@@ -15,5 +15,5 @@ uint32_t NilResponse::length() {
 }
 
 std::string NilResponse::to_string() {
-    return "nil";
+    return "(nil)";
 }

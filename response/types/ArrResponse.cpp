@@ -1,3 +1,5 @@
+#include <format>
+
 #include "ArrResponse.hpp"
 #include "NilResponse.hpp"
 #include "StrResponse.hpp"
@@ -64,14 +66,10 @@ uint32_t ArrResponse::length() {
 }
 
 std::string ArrResponse::to_string() {
-    if (len < 1) {
-        return "";
+    std::string output = std::format("(array) len={}", len);
+    for (Response *element : elements) {
+        output += std::format("\n{}", element->to_string());
     }
-
-    std::string output = elements[0]->to_string();
-    for (uint32_t i = 1; i < len; i++) {
-        output += ", " + elements[i]->to_string();
-    }
-
+    output += std::string("\n(array) end");
     return output;
 }

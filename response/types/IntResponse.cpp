@@ -1,3 +1,5 @@
+#include <format>
+
 #include "IntResponse.hpp"
 #include "../../utils/buf_utils.hpp"
 
@@ -20,7 +22,7 @@ uint32_t IntResponse::length() {
 }
 
 std::string IntResponse::to_string() {
-    return std::to_string(num);
+    return std::format("(integer) {}", std::to_string(num));
 }
 
 int64_t IntResponse::get_int() {

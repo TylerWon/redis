@@ -1,3 +1,5 @@
+#include <format>
+
 #include "StrResponse.hpp"
 #include "../../utils/buf_utils.hpp"
 
@@ -24,7 +26,7 @@ uint32_t StrResponse::length() {
 }
 
 std::string StrResponse::to_string() {
-    return msg;
+    return std::format("(string) {}", msg);
 }
 
 std::string StrResponse::get_msg() {
