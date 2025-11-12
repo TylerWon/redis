@@ -22,6 +22,7 @@
 #include "response/types/IntResponse.hpp"
 #include "response/types/ErrResponse.hpp"
 #include "response/types/ArrResponse.hpp"
+#include "response/types/DblResponse.hpp"
 #include "buffer/Buffer.hpp"
 #include "hashmap/HMap.hpp"
 #include "utils/intrusive_data_structure_utils.hpp"
@@ -372,8 +373,10 @@ Response *do_zquery(const std::string &key, double score, const std::string &nam
     std::vector<SPair *> pairs = entry->zset.find_all_ge(score, name.data(), name.length(), offset, limit);
     std::vector<Response *> elements;
     for (const SPair *pair : pairs) {
-        Response *element = new StrResponse(std::format("({}, {})", pair->score, std::string(pair->name, pair->len))); 
-        elements.push_back(element);
+        Response *score = new DblResponse(pair->score);
+        Response *name = new StrResponse(std::string(pair->name, pair->len));
+        elements.push_back(score);
+        elements.push_back(name);
     }
 
     return new ArrResponse(elements);
