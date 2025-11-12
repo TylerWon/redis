@@ -78,6 +78,8 @@ class AVLTree {
         /**
          * Finds the rank (position in sorted order) of the given node in its AVLTree.
          * 
+         * The rank is 0-based, so the lowest node is rank 0.
+         * 
          * @param node  Pointer to the node to rank.
          * 
          * @return  The rank of the node.

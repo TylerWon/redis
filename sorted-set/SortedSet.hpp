@@ -61,6 +61,8 @@ class SortedSet {
         /**
          * Finds the rank (position in sorted order) of the pair with the given name in the SortedSet.
          * 
+         * The rank is 0-based, so the lowest pair is rank 0.
+         * 
          * @param name  Byte array that stores the name.
          * @param len   Length of the name.
          * 

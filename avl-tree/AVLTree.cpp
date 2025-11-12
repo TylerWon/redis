@@ -146,7 +146,7 @@ uint64_t AVLTree::rank(AVLNode *node) {
         node = parent;
     }
 
-    uint64_t root_rank = AVLNode::get_size(node->left) + 1;
+    uint64_t root_rank = AVLNode::get_size(node->left);
     return root_rank + offset_from_root;
 }
 

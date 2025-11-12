@@ -210,7 +210,7 @@ void test_rank_lowest_pair() {
     set.insert(-4, "lucy", 4);
 
     int64_t rank = set.rank("lucy", 4);
-    assert(rank == 1);
+    assert(rank == 0);
 }
 
 void test_rank_middle_pair() {
@@ -220,7 +220,7 @@ void test_rank_middle_pair() {
     set.insert(-4, "lucy", 4);
 
     int64_t rank = set.rank("won", 3);
-    assert(rank == 2);
+    assert(rank == 1);
 }
 
 void test_rank_highest_pair() {
@@ -230,7 +230,7 @@ void test_rank_highest_pair() {
     set.insert(-4, "lucy", 4);
 
     int64_t rank = set.rank("tyler", 5);
-    assert(rank == 3);
+    assert(rank == 2);
 }
 
 int main() {

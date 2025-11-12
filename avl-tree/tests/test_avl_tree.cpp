@@ -32,7 +32,7 @@ int32_t compare_items(AVLNode *node1, AVLNode *node2) {
 }
 
 /**
- * Creates an AVLTree with n nodes. The nodes are contained by Items which range in value from 1 to n.
+ * Creates an AVLTree with n nodes. The nodes are contained by Items which range in value from 0 to n-1.
  *
  * @param n Number of nodes to have in the tree.
  *
@@ -40,7 +40,7 @@ int32_t compare_items(AVLNode *node1, AVLNode *node2) {
  */
 AVLTree *create_tree(uint32_t n) {
     AVLTree *tree = new AVLTree();
-    for (uint32_t i = 1; i <= n; i++) {
+    for (uint32_t i = 0; i < n; i++) {
         Item *item = new Item(i);
         tree->insert(&item->node, compare_items);
     }
@@ -517,16 +517,16 @@ void test_rank_only_node_in_tree() {
     tree.insert(&ten.node, compare_items);
 
     uint64_t rank = AVLTree::rank(&ten.node);
-    assert(rank == 1);
+    assert(rank == 0);
 }
 
 void test_rank_smallest_node() {
     AVLTree *tree = create_tree(25);
-    Item key(1);
+    Item key(0);
     AVLNode *node = tree->lookup(&key.node, compare_items);
 
     uint64_t rank = AVLTree::rank(node);
-    assert(rank == 1);
+    assert(rank == 0);
 
     clean_up_tree(tree);
 }
@@ -544,11 +544,11 @@ void test_rank_middle_node() {
 
 void test_rank_largest_node() {
     AVLTree *tree = create_tree(25);
-    Item key(25);
+    Item key(24);
     AVLNode *node = tree->lookup(&key.node, compare_items);
 
     uint64_t rank = AVLTree::rank(node);
-    assert(rank == 25);
+    assert(rank == 24);
 
     clean_up_tree(tree);
 }
