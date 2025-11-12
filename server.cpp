@@ -264,7 +264,7 @@ Response *do_keys() {
 }
 
 /**
- * Adds a (score, name) pair to the sorted set stored at the given key.
+ * Adds a pair to the sorted set stored at the given key.
  *
  * If a pair with the given name already exists in the sorted set, its score is updated.
  * If key does not exist, a new sorted set with the specified pair is created.
@@ -297,7 +297,7 @@ Response *do_zadd(const std::string &key, double score, const std::string &name)
 }
 
 /**
- * Gets the score of the given name in the sorted set stored at key.
+ * Gets the score of name in the sorted set stored at key.
  * 
  * @param key   The key of the sorted set.
  * @param name  The name of the score to get.
@@ -320,7 +320,7 @@ Response *do_zscore(const std::string &key, const std::string &name) {
 }
 
 /**
- * Removes the pair with the given name in the sorted set stored at key.
+ * Removes name from the sorted set stored at key.
  * 
  * If the key exists but does not hold a sorted set, an error is returned.
  * 
@@ -346,7 +346,7 @@ Response *do_zrem(const std::string &key, const std::string &name) {
 }
 
 /**
- * Finds all pairs in the sorted set stored at key greater than or equal to the given (score, name) pair.
+ * Finds all pairs in the sorted set stored at key greater than or equal to the given pair.
  * 
  * If the key exists but does not hold a sorted set, an error is returned.
  * 
@@ -380,7 +380,7 @@ Response *do_zquery(const std::string &key, double score, const std::string &nam
 }
 
 /**
- * Gets the rank (position in sorted order) of the pair with name in the sorted set stored at key.
+ * Gets the rank (position in sorted order) of name in the sorted set stored at key.
  * 
  * The rank is 0-based, so the lowest pair is rank 0.
  * 
