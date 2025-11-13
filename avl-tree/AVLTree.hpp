@@ -5,7 +5,6 @@
 
 #include "components/AVLNode.hpp"
 
-/** AVL tree */
 class AVLTree {
     public:
         AVLNode *root = NULL;
