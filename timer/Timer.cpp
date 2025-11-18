@@ -1,7 +1,7 @@
 #include "Timer.hpp"
 #include "../utils/time_utils.hpp"
 
-const time_t TIMEOUT_MS = 5 * 1000;
+const time_t TIMEOUT_MS = 60 * 1000;
 
 Timer::Timer() {
     reset();
