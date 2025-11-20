@@ -14,6 +14,7 @@
 #include "buffer/Buffer.hpp"
 #include "constants.hpp"
 #include "hashmap/HMap.hpp"
+#include "min-heap/MinHeap.hpp"
 #include "queue/Queue.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
@@ -25,6 +26,7 @@
 #include "response/types/DblResponse.hpp"
 #include "sorted-set/SortedSet.hpp"
 #include "timers/IdleTimer.hpp"
+#include "timers/TTLTimer.hpp"
 #include "utils/buf_utils.hpp"
 #include "utils/intrusive_data_structure_utils.hpp"
 #include "utils/hash_utils.hpp"
@@ -45,10 +47,13 @@ enum EntryType {
  */
 struct Entry {
     HNode node;
-    std::string key;    
+    std::string key;
+    // type 
     EntryType type;
     std::string str;
     SortedSet zset;
+    // timers
+    TTLTimer ttl_timer;
 };
 
 /* Simplified version of Entry used for look-ups */
@@ -75,6 +80,7 @@ HMap kv_store; // key-value store
 std::vector<Conn *> fd_to_conn; // map of all client connections, indexed by fd
 std::vector<struct pollfd> pollfds; // array of pollfds for poll()
 Queue idle_timers; // idle timers for active connections, timer closest to expiring is at the front of the queue
+MinHeap ttl_timers; // ttl timers for entries in the kv store, timer closest to expiring is at the root of the heap
 
 /**
  * Gets the address info for the machine running this program which can be used in bind().
@@ -213,10 +219,39 @@ Response *do_set(const std::string &key, const std::string &value) {
         entry->type = EntryType::STR;
         entry->str = value;
         entry->node.hval = str_hash(key);
+        if (entry->ttl_timer.expiry_time_ms != 0) {
+            entry->ttl_timer.expiry_time_ms = 0;
+            ttl_timers.remove(&entry->ttl_timer.node, is_ttl_timer_less);
+        }
         kv_store.insert(&entry->node);
     }
 
     return new StrResponse("OK");
+}
+
+/**
+ * Callback which checks if one TTLTimer is less than another in a MinHeap.
+ * 
+ * @param node1 The MHNode contained by the first TTLTimer.
+ * @param node2 The MHNode contained by the second TTLTimer.
+ * 
+ * @return  True if the first TTLTimer is less than the second TTLTimer.
+ *          False otherwise.
+ */
+bool is_ttl_timer_less(MHNode *node1, MHNode *node2) {
+    TTLTimer *timer1 = container_of(node1, TTLTimer, node);
+    TTLTimer *timer2 = container_of(node2, TTLTimer, node);
+    return timer1->expiry_time_ms < timer2->expiry_time_ms;
+}
+
+/**
+ * Deletes (deallocates) an Entry.
+ * 
+ * @param entry Pointer to the Entry to delete.
+ */
+void delete_entry(Entry *entry) {
+    ttl_timers.remove(&entry->ttl_timer.node, is_ttl_timer_less);
+    delete entry;
 }
 
 /**
@@ -233,7 +268,8 @@ Response *do_del(const std::string &key) {
     HNode *node = kv_store.remove(&lookup_entry.node, are_entries_equal);
     
     if (node != NULL) {
-        delete container_of(node, Entry, node);
+        Entry *entry = container_of(node, Entry, node);
+        delete_entry(entry);
         return new IntResponse(1);
     }
 
@@ -416,6 +452,36 @@ Response *do_zrank(const std::string &key, const std::string &name) {
 }
 
 /**
+ * Sets a timeout on the given key. After the timeout has expired, the key will be deleted.
+ * 
+ * The timeout will be cleared by commands that delete or overwrite the contents of the key. This includes the del and 
+ * set commands.
+ * 
+ * @param key       The key to set the timeout on.
+ * @param seconds   The timeout in seconds.
+ * 
+ * @return  IntReponse: 1 if the timeout was set, 0 otherwise.
+ */
+Response *do_expire(const std::string &key, time_t seconds) {
+    Entry *entry = lookup_entry(key);
+
+    if (entry == NULL) {
+        return new IntResponse(0);
+    }
+
+    TTLTimer *timer = &entry->ttl_timer;
+    time_t old_expiry_time = timer->expiry_time_ms;
+    timer->expiry_time_ms = get_time_ms() + seconds * 1000;
+    if (old_expiry_time == 0) {
+        ttl_timers.insert(&timer->node, is_ttl_timer_less);
+    } else {
+        ttl_timers.update(&timer->node, is_ttl_timer_less);
+    }
+
+    return new IntResponse(1);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -428,6 +494,7 @@ Response *do_zrank(const std::string &key, const std::string &name) {
  * 7. zrem key name
  * 8. zquery key score name offset limit
  * 9. zrank key name
+ * 10. expire key seconds
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -457,6 +524,8 @@ Response *execute_command(Request *request) {
         response = do_zquery(command[1], std::stod(command[2]), command[3], std::stol(command[4]), std::stoul(command[5]));
     } else if (command.size() == 3 && command[0] == "zrank") {
         response = do_zrank(command[1], command[2]);
+    } else if (command.size() == 3 && command[0] == "expire") {
+        response = do_expire(command[1], std::stol(command[2]));
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
@@ -503,18 +572,30 @@ void init_pollfds(int listener) {
  *          -1 if there are no active timers.
  */
 int32_t get_time_until_timeout() {
-    if (idle_timers.is_empty()) {
-        return -1;
+    time_t next_timeout_ms = -1;
+    time_t now_ms = get_time_ms();
+
+    if (!idle_timers.is_empty()) {
+        QNode *node = idle_timers.front();
+        IdleTimer *timer = container_of(node, IdleTimer, node);
+        next_timeout_ms = timer->expiry_time_ms;
     }
 
-    time_t now_ms = get_time_ms();
-    QNode *node = idle_timers.front();
-    IdleTimer *timer = container_of(node, IdleTimer, node);
-    if (timer->expiry_time_ms <= now_ms) {
+    if (!ttl_timers.is_empty()) {
+        MHNode *node = ttl_timers.min();
+        TTLTimer *timer = container_of(node, TTLTimer, node);
+        if (next_timeout_ms == -1 || timer->expiry_time_ms < next_timeout_ms) {
+            next_timeout_ms = timer->expiry_time_ms;
+        }
+    }
+
+    if (next_timeout_ms == -1) {
+        return -1;
+    } else if (now_ms >= next_timeout_ms) {
         return 0;
     }
 
-    return (int32_t) (timer->expiry_time_ms - now_ms);
+    return next_timeout_ms - now_ms;
 }
 
 /** 
@@ -728,11 +809,11 @@ void handle_close(Conn *conn) {
 }
 
 /**
- * Checks the queue of idle timers to see if any have expired.
+ * Checks the idle and TTL timers to see if any have expired.
  * 
- * If a timer has expired, the associated connection is removed.
+ * If a timer has expired, the associated connection/entry is removed.
  */
-void process_idle_timers() {
+void process_timers() {
     time_t now_ms = get_time_ms();
     while (!idle_timers.is_empty()) {
         QNode *node = idle_timers.front();
@@ -743,6 +824,18 @@ void process_idle_timers() {
         Conn *conn = container_of(timer, Conn, idle_timer);
         log("connection %d exceeded idle timeout", conn->fd);
         handle_close(conn);
+    }
+
+    while (!ttl_timers.is_empty()) {
+        MHNode *node = ttl_timers.min();
+        TTLTimer *timer = container_of(node, TTLTimer, node);
+        if (timer->expiry_time_ms > now_ms) {
+            break;
+        }
+        Entry *entry = container_of(timer, Entry, ttl_timer);
+        log("key \'%s\' expired", entry->key.data());
+        kv_store.remove(&entry->node, are_entries_equal);
+        delete_entry(entry);
     }
 }
 
@@ -793,6 +886,6 @@ int main() {
             }
         }
 
-        process_idle_timers();
+        process_timers();
     }
 }

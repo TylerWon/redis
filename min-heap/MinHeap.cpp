@@ -3,7 +3,7 @@
 void MinHeap::insert(MHNode *node, bool (*is_less)(MHNode *, MHNode *)) {
     nodes.push_back(node);
     node->pos = nodes.size() - 1;
-    heapify(node->pos, is_less);
+    update(node, is_less);
 }
 
 void MinHeap::remove(MHNode *node, bool (*is_less)(MHNode *, MHNode *)) {
@@ -11,7 +11,7 @@ void MinHeap::remove(MHNode *node, bool (*is_less)(MHNode *, MHNode *)) {
     nodes[node->pos] = last;
     last->pos = node->pos;
     nodes.pop_back();
-    heapify(last->pos, is_less);
+    update(last, is_less);
 
 }
 
@@ -23,13 +23,12 @@ bool MinHeap::is_empty() {
     return nodes.empty();
 }
 
-void MinHeap::heapify(uint32_t pos, bool (*is_less)(MHNode *, MHNode *)) {
-    MHNode *parent = get_parent(pos);
-    MHNode *node = nodes[pos];
+void MinHeap::update(MHNode *node, bool (*is_less)(MHNode *, MHNode *)) {
+    MHNode *parent = get_parent(node->pos);
     if (parent != NULL && is_less(node, parent)) {
-        heapify_up(pos, is_less);
+        heapify_up(node->pos, is_less);
     } else {
-        heapify_down(pos, is_less);
+        heapify_down(node->pos, is_less);
     }
 }
 

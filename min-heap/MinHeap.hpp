@@ -13,6 +13,15 @@ class MinHeap {
         void insert(MHNode *node, bool (*is_less)(MHNode *, MHNode *));
 
         /**
+         * Updates the position of the node in the heap if it violates the invariant that all nodes must be less than 
+         * their children.
+         * 
+         * @param pos       The node to update.
+         * @param is_less   A function that checks if a node is less than another node.
+         */
+        void update(MHNode *node, bool (*is_less)(MHNode *, MHNode *));
+
+        /**
          * Removes a node from the MinHeap.
          * 
          * @param node      The node to remove.
@@ -27,15 +36,6 @@ class MinHeap {
         bool is_empty();
     private:
         std::vector<MHNode *> nodes;
-
-        /**
-         * Updates the position of the node if it violates the min heap invariant that all nodes must be less than their 
-         * children.
-         * 
-         * @param pos       The position of the node in the heap.
-         * @param is_less   A function that checks if a node is less than another node.
-         */
-        void heapify(uint32_t pos, bool (*is_less)(MHNode *, MHNode *));
 
         /**
          * Updates the position of the node if it is less than its parent.

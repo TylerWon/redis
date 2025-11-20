@@ -3,7 +3,7 @@
 #include "../queue/Queue.hpp"
 
 /**
- * A timer to track when a connection has been idle for too long. 
+ * A timer to track the idleness of a connection. 
  * 
  * Once the expiry time is exceeded, the connection associated with the timer has been idle for too long and should be 
  * removed.
