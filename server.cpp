@@ -460,11 +460,12 @@ Response *do_zrank(const std::string &key, const std::string &name) {
  * @param key       The key to set the timeout on.
  * @param seconds   The timeout in seconds.
  * 
- * @return  IntReponse: 1 if the timeout was set, 0 otherwise.
+ * @return  One of the following:
+ *          - IntReponse: 1 if the timeout was set.
+ *          - IntResponse: 0 if timeout was not set.
  */
 Response *do_expire(const std::string &key, time_t seconds) {
     Entry *entry = lookup_entry(key);
-
     if (entry == NULL) {
         return new IntResponse(0);
     }
@@ -482,6 +483,31 @@ Response *do_expire(const std::string &key, time_t seconds) {
 }
 
 /**
+ * Gets the remaining time-to-live of the given key.
+ * 
+ * @param key   The key to get the TTL for.
+ * 
+ * @return  One of the following:
+ *          - IntResponse: TTL in seconds.
+ *          - IntResponse: -1 if the key exists but has no associated expiration.
+ *          - IntResponse: -2 if the key does not exist.
+ */
+Response *do_ttl(const std::string &key) { 
+    Entry *entry = lookup_entry(key);
+    if (entry == NULL) {
+        return new IntResponse(-2);
+    }
+
+    TTLTimer *timer = &entry->ttl_timer;
+    if (timer->expiry_time_ms == 0) {
+        return new IntResponse(-1);
+    }
+
+    time_t now_ms = get_time_ms();
+    return new IntResponse((timer->expiry_time_ms - now_ms) / 1000);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -495,6 +521,7 @@ Response *do_expire(const std::string &key, time_t seconds) {
  * 8. zquery key score name offset limit
  * 9. zrank key name
  * 10. expire key seconds
+ * 11. ttl key
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -526,6 +553,8 @@ Response *execute_command(Request *request) {
         response = do_zrank(command[1], command[2]);
     } else if (command.size() == 3 && command[0] == "expire") {
         response = do_expire(command[1], std::stol(command[2]));
+    } else if (command.size() == 2 && command[0] == "ttl") {
+        response = do_ttl(command[1]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
