@@ -5,6 +5,8 @@
 #include <ostream>
 #include <cstring>
 
+#include "log.hpp"
+
 /* Helper that takes a va_list */
 void vlog(const char* fmt, va_list args) {
     time_t timestamp = time(NULL);
@@ -18,6 +20,17 @@ void vlog(const char* fmt, va_list args) {
 }
 
 void log(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vlog(fmt, args);
+    va_end(args);
+}
+
+void debug(const char* fmt, ...) {
+    if (!DEBUG) {
+        return;
+    }
+
     va_list args;
     va_start(args, fmt);
     vlog(fmt, args);

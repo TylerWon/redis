@@ -47,12 +47,12 @@ int connect_to_server(struct addrinfo *res) {
     int server;
     for (p = res; p != NULL; p = p->ai_next) {
         if ((server = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            perror("socket()");
+            debug("%s", strerror(errno));
             continue;
         }
 
         if (connect(server, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("connect()");
+            debug("%s", strerror(errno));
             close(server);
             continue;
         }
@@ -75,12 +75,12 @@ int connect_to_server(struct addrinfo *res) {
 bool send_request(int server, Request request) {
     Buffer buf;
     if (request.marshal(buf) == Request::MarshalStatus::REQ_TOO_BIG) {
-        log("request exceeds size limit");
+        debug("request exceeds size limit");
         return false;
     }
 
     if (send_all(server, buf.data(), buf.size()) == -1) {
-        perror("failed to send message");
+        debug("%s", strerror(errno));
         return false;
     }
 
@@ -99,19 +99,19 @@ bool send_request(int server, Request request) {
  */
 bool recv_response(int server, char *buf, uint32_t *n) {
     if (recv_all(server, buf, Response::HEADER_SIZE) == -1) {
-        perror("failed to receive response header");
+        debug("failed to receive response header: %s", strerror(errno));
         return false;
     }
 
     uint32_t len;
     read_uint32(&len, (const char **) &buf);
     if (len > Response::MAX_LEN) {
-        printf("response is too long\n");
+        debug("response is too long");
         return false;
     }
 
     if (recv_all(server, buf, len) == -1) {
-        perror("failed to receive response body");
+        debug("failed to receive response body: %s", strerror(errno));
         return false;
     }
 
@@ -132,19 +132,19 @@ bool handle_response(int server) {
     char buf[Response::HEADER_SIZE + Response::MAX_LEN];
     uint32_t n;
     if (!recv_response(server, buf, &n)) {
-        log("failed to receive response");
+        debug("failed to receive response");
         return false;
     }
 
     auto [response, status] = Response::unmarshal(buf, n);
     if (status == Response::UnmarshalStatus::INCOMPLETE_RES) {
-        log("received incomplete response");
+        debug("received incomplete response");
         return false;
     } else if (status == Response::UnmarshalStatus::RES_TOO_BIG) {
-        log("response is too big");
+        debug("response is too big");
         return false;
     } else if (status == Response::UnmarshalStatus::INVALID_RES) {
-        log("response is invalid");
+        debug("response is invalid");
         return false;
     }
 
@@ -166,21 +166,21 @@ int main(int argc, char *argv[]) {
     
     freeaddrinfo(res);
 
-    log("connected to server");
+    debug("connected to server");
 
     std::vector<std::string> command;
     for (int i = 1; i < argc; i++) {
         command.push_back(argv[i]);
     }
 
-    log("read command");
+    debug("read command");
 
     Request request(command);
     if (!send_request(server, request)) {
         fatal("failed to send request");
     }
 
-    log("sent request");
+    debug("sent request");
 
     if (!handle_response(server)) {
         fatal("failed to handle response");

@@ -117,7 +117,7 @@ int start_server(struct addrinfo *res) {
     int listener;
     for (p = res; p != NULL; p = p->ai_next) {
         if ((listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            perror("socket()");
+            log("%s", strerror(errno));
             continue;
         }
 
@@ -125,13 +125,13 @@ int start_server(struct addrinfo *res) {
         setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));  // Allows port to be re-used
 
         if (bind(listener, p->ai_addr, p->ai_addrlen) == -1) {
-            perror("bind()");
+            log("%s", strerror(errno));
             close(listener);
             continue;
         }
 
         if (listen(listener, SOMAXCONN) == -1) {
-            perror("listen()");
+            log("%s", strerror(errno));
             close(listener);
             continue;
         }
@@ -592,7 +592,7 @@ Response *execute_command(Request *request) {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
 
-    log(response->to_string().data());
+    debug(response->to_string().data());
 
     return response;
 }
@@ -695,12 +695,12 @@ bool set_non_blocking(int fd) {
 void handle_new_connection(int listener) {
     int client = accept(listener, NULL, NULL);
     if (client == -1) {
-        log("failed to accept new connection");
+        debug("failed to accept new connection");
         return;
     }
 
     if (!set_non_blocking(client)) {
-        log("failed to set socket to non-blocking");
+        debug("failed to set socket to non-blocking");
         close(client);
         return;
     }
@@ -820,12 +820,11 @@ void handle_send(Conn *conn) {
  */
 void handle_recv(Conn *conn) {
     if (!recv_data(conn)) {
-        log("couldn't receive data on connection %d", conn->fd);
         return;
     }
 
     while (Request *request = parse_request(conn)) {
-        log("connection: %d, request: %s", conn->fd, request->to_string().data());
+        log("request from connection %d: %s", conn->fd, request->to_string().data());
 
         Response *response = execute_command(request);
         if (response->marshal(conn->outgoing) == Response::MarshalStatus::RES_TOO_BIG) {
