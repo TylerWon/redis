@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -O2 -g
+CXXFLAGS = -Wall -Wextra -std=c++20 -O2 -g -MMD -MP
 
 # Source files
 CLIENT_SRC := ./client.cpp
@@ -39,5 +39,10 @@ test: $(TEST_BIN)
 
 clean:
 	rm -f $(CLIENT) $(SERVER) $(TEST_BIN) $(COMMON_OBJ) $(CLIENT_OBJ) $(SERVER_OBJ) $(TEST_OBJ)
+
+-include $(CLIENT_OBJ:.o=.d) \
+         $(SERVER_OBJ:.o=.d) \
+         $(TEST_OBJ:.o=.d) \
+         $(COMMON_OBJ:.o=.d)
 
 .PHONY: all clean
