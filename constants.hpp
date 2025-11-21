@@ -1,3 +1,4 @@
 #pragma once
 
-const char *PORT = "8000";
+extern const char *PORT;
+extern const bool DEBUG;

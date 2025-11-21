@@ -1,5 +1,3 @@
-const bool DEBUG = true;
-
 /* Prints the provided format string */
 void log(const char* fmt, ...);
 

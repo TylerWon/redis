@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "log.hpp"
+#include "../constants.hpp"
 
 /* Helper that takes a va_list */
 void vlog(const char* fmt, va_list args) {
