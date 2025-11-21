@@ -250,7 +250,11 @@ Response *do_set(const std::string &key, const std::string &value) {
  * @param entry Pointer to the Entry to delete.
  */
 void delete_entry(Entry *entry) {
-    ttl_timers.remove(&entry->ttl_timer.node, is_ttl_timer_less);
+    TTLTimer *timer = &entry->ttl_timer;
+    if (timer->expiry_time_ms != 0) {
+        ttl_timers.remove(&entry->ttl_timer.node, is_ttl_timer_less);
+    }
+    
     delete entry;
 }
 
@@ -508,6 +512,32 @@ Response *do_ttl(const std::string &key) {
 }
 
 /**
+ * Removes the existing timeout on the given key.
+ * 
+ * @param key   The key to remove the timeout for.
+ * 
+ * @return  One of the following:
+ *          - IntResponse: 0 if the key does not exist or does not have an associated timeout.
+ *          - IntResponse: 1 if the timeout has been removed.
+ */
+Response *do_persist(const std::string &key) { 
+    Entry *entry = lookup_entry(key);
+    if (entry == NULL) {
+        return new IntResponse(0);
+    }
+
+    TTLTimer *timer = &entry->ttl_timer;
+    if (timer->expiry_time_ms == 0) {
+        return new IntResponse(0);
+    }
+
+    ttl_timers.remove(&timer->node, is_ttl_timer_less);
+    timer->expiry_time_ms = 0;
+
+    return new IntResponse(1);
+}
+
+/**
  * Executes the command in the Request.
  * 
  * The following commands are supported:
@@ -522,6 +552,7 @@ Response *do_ttl(const std::string &key) {
  * 9. zrank key name
  * 10. expire key seconds
  * 11. ttl key
+ * 12. persist key
  * 
  * Note: square brackets indicate optional arguments
  * 
@@ -555,6 +586,8 @@ Response *execute_command(Request *request) {
         response = do_expire(command[1], std::stol(command[2]));
     } else if (command.size() == 2 && command[0] == "ttl") {
         response = do_ttl(command[1]);
+    } else if (command.size() == 2 && command[0] == "persist") {
+        response = do_persist(command[1]);
     } else {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
