@@ -148,7 +148,7 @@ bool handle_response(int server) {
         return false;
     }
 
-    log((*response)->to_string().data());
+    printf("%s\n", (*response)->to_string().data());
 
     return true;
 }
