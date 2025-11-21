@@ -592,8 +592,6 @@ Response *execute_command(Request *request) {
         response = new ErrResponse(ErrResponse::ErrorCode::ERR_UNKNOWN, "unknown command");
     }
 
-    debug(response->to_string().data());
-
     return response;
 }
 
@@ -695,12 +693,12 @@ bool set_non_blocking(int fd) {
 void handle_new_connection(int listener) {
     int client = accept(listener, NULL, NULL);
     if (client == -1) {
-        debug("failed to accept new connection");
+        log("failed to accept new connection");
         return;
     }
 
     if (!set_non_blocking(client)) {
-        debug("failed to set socket to non-blocking");
+        log("failed to set socket to non-blocking");
         close(client);
         return;
     }
@@ -715,6 +713,8 @@ void handle_new_connection(int listener) {
 
     fd_to_conn[conn->fd] = conn;
     idle_timers.push(&conn->idle_timer.node);
+
+    log("new connection %d", client);
 }
 
 /**
