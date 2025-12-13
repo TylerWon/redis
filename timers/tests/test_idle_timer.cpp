@@ -16,7 +16,8 @@ void test_set_expiry_new_timer() {
     assert(timer.expiry_time_ms > 0);
     assert(idle_timers->is_empty() == false);
     assert(idle_timers->front() == &timer.node);
-}
+    idle_timers->remove(&timer.node);
+    assert(idle_timers->is_empty() == true);}
 
 void test_set_expiry_existing_timer() {
     IdleTimer timer;

@@ -16,7 +16,8 @@ void test_set_expiry_new_timer() {
     assert(timer.expiry_time_ms > 0);
     assert(ttl_timers->is_empty() == false);
     assert(ttl_timers->min() == &timer.node);
-}
+    ttl_timers->remove(&timer.node, is_ttl_timer_less);
+    assert(ttl_timers->is_empty() == true);}
 
 void test_set_expiry_existing_timer() {
     TTLTimer timer;
