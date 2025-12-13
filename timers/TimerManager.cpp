@@ -8,6 +8,10 @@
 #include "../utils/time_utils.hpp"
 
 int32_t TimerManager::get_time_until_expiry() {
+    return get_time_until_expiry_fn(get_time_ms);
+}
+
+int32_t TimerManager::get_time_until_expiry_fn(time_t (*get_time_ms)()) {
     time_t next_expiry_ms = -1;
     time_t now_ms = get_time_ms();
 
@@ -35,6 +39,10 @@ int32_t TimerManager::get_time_until_expiry() {
 }
 
 void TimerManager::process_timers(HMap &kv_store, std::vector<Conn *> &fd_to_conn, ThreadPool &thread_pool) {
+    process_timers_fn(kv_store, fd_to_conn, thread_pool, get_time_ms);
+}
+
+void TimerManager::process_timers_fn(HMap &kv_store, std::vector<Conn *> &fd_to_conn, ThreadPool &thread_pool, time_t (*get_time_ms)()) {
     time_t now_ms = get_time_ms();
     while (!idle_timers.is_empty()) {
         QNode *node = idle_timers.front();
@@ -45,6 +53,7 @@ void TimerManager::process_timers(HMap &kv_store, std::vector<Conn *> &fd_to_con
         Conn *conn = container_of(timer, Conn, idle_timer);
         log("connection %d exceeded idle timeout", conn->fd);
         conn->handle_close(fd_to_conn, this);
+        delete conn;
     }
 
     uint32_t count = 0;

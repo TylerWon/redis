@@ -208,6 +208,7 @@ int main() {
 
             if (revents & POLLERR || conn->want_close) {
                 conn->handle_close(fd_to_conn, &timers);
+                delete conn;
             }
         }
 
