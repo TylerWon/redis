@@ -6,6 +6,7 @@
 #include "../timers/IdleTimer.hpp"
 #include "../timers/TTLTimer.hpp"
 #include "../thread-pool/ThreadPool.hpp"
+#include "../utils/hash_utils.hpp"
 
 /* Type of Entry */
 enum EntryType {
@@ -27,12 +28,24 @@ struct Entry {
     SortedSet zset;
     // timers
     TTLTimer ttl_timer;
+
+    Entry(std::string key, EntryType type, std::string str="") {
+        this->key = key;
+        this->type = type;
+        this->str = str;
+        node.hval = str_hash(key);
+    }
 };
 
 /* Simplified version of Entry used for look-ups */
 struct LookupEntry {
     HNode node;
     std::string key;
+
+    LookupEntry(std::string key) {
+        this->key = key;
+        node.hval = str_hash(key);
+    }
 };
 
 extern const uint32_t LARGE_ZSET_SIZE;

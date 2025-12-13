@@ -167,9 +167,7 @@ ssize_t recv_test_handle_recv_multiple_requests(int fd, void *buf, size_t n, int
  * @param kv_store  The kv store.
  */
 void assert_key_in_store(std::string key, HMap &kv_store) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
+    LookupEntry lookup_entry(key);
     HNode *node = kv_store.lookup(&lookup_entry.node, are_entries_equal);
     assert(node != NULL);
 }

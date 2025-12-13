@@ -11,9 +11,7 @@
 #include "../utils/time_utils.hpp"
 
 Entry *CommandExecutor::lookup_entry(const std::string &key) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
+    LookupEntry lookup_entry(key);
     HNode *node = kv_store->lookup(&lookup_entry.node, are_entries_equal);
     return node != NULL ? container_of(node, Entry, node) : NULL;
 }
@@ -41,11 +39,7 @@ std::unique_ptr<Response> CommandExecutor::do_set(const std::string &key, const 
         entry->ttl_timer.clear_expiry(timers);
         log("set: updated key '%s'", key.data());
     } else {
-        entry = new Entry();
-        entry->key = key;
-        entry->type = EntryType::STR;
-        entry->str = value;
-        entry->node.hval = str_hash(key);
+        entry = new Entry(key, EntryType::STR, value);
         kv_store->insert(&entry->node);
         log("set: created key '%s'", key.data());
     }
@@ -54,9 +48,7 @@ std::unique_ptr<Response> CommandExecutor::do_set(const std::string &key, const 
 }
 
 std::unique_ptr<Response> CommandExecutor::do_del(const std::string &key) {
-    LookupEntry lookup_entry;
-    lookup_entry.key = key;
-    lookup_entry.node.hval = str_hash(key);
+    LookupEntry lookup_entry(key);
     HNode *node = kv_store->remove(&lookup_entry.node, are_entries_equal);
     
     if (node != NULL) {
@@ -97,10 +89,7 @@ std::unique_ptr<Response> CommandExecutor::do_zadd(const std::string &key, doubl
     Entry *entry = lookup_entry(key);
 
     if (entry == NULL) {
-        entry = new Entry(); // sorted set initialized when Entry created
-        entry->key = key;
-        entry->type = EntryType::SORTED_SET;
-        entry->node.hval = str_hash(key);
+        entry = new Entry(key, EntryType::SORTED_SET);
         kv_store->insert(&entry->node);
         log("zadd: created sorted set '%s'", key.data());
     } else if (entry != NULL && entry->type != EntryType::SORTED_SET) {
