@@ -8,6 +8,11 @@ This project implements a Redis-like client and server in C/C++. Redis is an in-
 2. Start the server: `./server`
 3. Send commands to the server with the client: `./client [command]`
 
+## Testing
+
+- Build test files with `make test` then run indiviudal test files (ex. `./test_command_executor`), or
+- Build and run all test files: `make run-tests`
+
 ## Commands
 
 `get <key>` - Gets the entry for _key_.
